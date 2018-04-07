@@ -1,4 +1,4 @@
-package soundbot;
+package soundchan;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -11,6 +11,7 @@ import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -18,16 +19,42 @@ import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class Main extends ListenerAdapter {
   public static void main(String[] args) throws Exception {
+
+    Properties properties = LoadProperties();
+
     JDA jda = new JDABuilder(AccountType.BOT)
-        .setToken(System.getProperty("botToken"))
+        .setToken(properties.getProperty("botToken"))
         .buildBlocking();
 
     jda.addEventListener(new Main());
+  }
+
+  private static Properties LoadProperties(){
+    Properties properties = new Properties();
+    InputStream input = null;
+      try{
+        input = new FileInputStream("soundchan.properties");
+        properties.load(input);
+
+      }catch (IOException ex){
+        ex.printStackTrace();
+      } finally {
+        try {
+          input.close();
+        } catch (IOException ex) {
+          ex.printStackTrace();
+        }
+      }
+    return properties;
   }
 
   private final AudioPlayerManager playerManager;
@@ -64,20 +91,27 @@ public class Main extends ListenerAdapter {
   public void onMessageReceived(MessageReceivedEvent event) {
     String[] command = event.getMessage().getContentRaw().split(" ", 2);
     Guild guild = event.getGuild();
+    MessageChannel channel = null;
 
-    if (guild != null) {
-      if ("~play".equals(command[0]) && command.length == 2) {
-        loadAndPlay(event.getTextChannel(), command[1]);
-      } else if ("~skip".equals(command[0])) {
-        skipTrack(event.getTextChannel());
-      } else if ("~volume".equals(command[0]) && command.length == 2) {
-        changeVolume(event.getTextChannel(), command[1]);
-      } else if ("~pause".equals(command[0])) {
-        pauseTrack(event.getTextChannel());
-      } else if ("~unpause".equals(command[0])) {
-        unpauseTrack(event.getTextChannel());
-      }
+    // This means SoundChan was DM'd
+    if (guild == null){
+      channel = event.getPrivateChannel();
+    }else{
+      channel = event.getTextChannel();
     }
+
+    if(guild != null){
+    if ("~play".equals(command[0]) && command.length == 2) {
+        loadAndPlay(event.getTextChannel(), command[1]);
+    } else if ("~skip".equals(command[0])) {
+        skipTrack(event.getTextChannel());
+    } else if ("~volume".equals(command[0]) && command.length == 2) {
+        changeVolume(event.getTextChannel(), command[1]);
+    } else if ("~pause".equals(command[0])) {
+        pauseTrack(event.getTextChannel());
+    } else if ("~unpause".equals(command[0])) {
+        unpauseTrack(event.getTextChannel());
+      }}
 
     super.onMessageReceived(event);
   }

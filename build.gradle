@@ -13,4 +13,4 @@ dependencies {
   runtime 'ch.qos.logback:logback-classic:1.2.3'
 }
 
-mainClassName = 'soundbot.Main'
+mainClassName = 'soundchan.Main'
