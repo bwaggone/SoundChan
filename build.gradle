@@ -1,0 +1,16 @@
+plugins {
+  id 'java'
+  id 'application'
+}
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile 'net.dv8tion:JDA:3.5.1_339'
+  compile 'com.sedmelluq:lavaplayer:1.2.53'
+  runtime 'ch.qos.logback:logback-classic:1.2.3'
+}
+
+mainClassName = 'soundbot.Main'
