@@ -33,6 +33,8 @@ public class Main extends ListenerAdapter {
         .setToken(properties.getProperty("botToken"))
         .buildBlocking();
 
+    localFilePath = properties.getProperty("localFilePath");
+
     jda.addEventListener(new Main());
   }
 
@@ -57,6 +59,7 @@ public class Main extends ListenerAdapter {
 
   private long monitoredGuildId = -1;
   private Guild monitoredGuild;
+  private static String localFilePath;
   private final AudioPlayerManager playerManager;
   private final Map<Long, GuildMusicManager> musicManagers;
 
@@ -121,19 +124,28 @@ public class Main extends ListenerAdapter {
     }
 
     if(monitoredGuild != null){
-    if ("~play".equals(command[0]) && command.length == 2) {
-        loadAndPlay(channel, command[1]);
-    } else if ("~skip".equals(command[0])) {
-        skipTrack(channel);
-    } else if ("~volume".equals(command[0]) && command.length == 2) {
-        changeVolume(channel, command[1]);
-    } else if ("~pause".equals(command[0])) {
-        pauseTrack(channel);
-    } else if ("~unpause".equals(command[0])) {
-        unpauseTrack(channel);
-    } else if ("~list".equals(command[0])) {
-      listTracks(channel);
-    }
+
+      // "!" Signifies that you're looking to play a sound effect
+      if(command[0].startsWith("!") && command[0].length() > 1){
+        loadAndPlay(channel, localFilePath + "\\" + command[0].substring(1) + ".mp3");
+      }
+
+      // "~" Signifies that you're looking to play a song/sound from a url
+      if(command[0].startsWith("~") && command[0].length() > 1){
+        if ("~play".equals(command[0]) && command.length == 2) {
+            loadAndPlay(channel, command[1]);
+        } else if ("~skip".equals(command[0])) {
+            skipTrack(channel);
+        } else if ("~volume".equals(command[0]) && command.length == 2) {
+            changeVolume(channel, command[1]);
+        } else if ("~pause".equals(command[0])) {
+            pauseTrack(channel);
+        } else if ("~unpause".equals(command[0])) {
+            unpauseTrack(channel);
+        } else if ("~list".equals(command[0])) {
+          listTracks(channel);
+        }
+      }
 
     }
 
