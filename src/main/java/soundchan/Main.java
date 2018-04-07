@@ -131,7 +131,11 @@ public class Main extends ListenerAdapter {
         pauseTrack(channel);
     } else if ("~unpause".equals(command[0])) {
         unpauseTrack(channel);
-      }}
+    } else if ("~list".equals(command[0])) {
+      listTracks(channel);
+    }
+
+    }
 
     super.onMessageReceived(event);
   }
@@ -140,6 +144,17 @@ public class Main extends ListenerAdapter {
     GuildMusicManager musicManager = getGuildAudioPlayer();
     musicManager.player.setVolume(Integer.parseInt(volume));
     channel.sendMessage("Volume now set to " + volume + "%").queue();
+  }
+
+  private void listTracks(final MessageChannel channel) {
+    GuildMusicManager musicManager = getGuildAudioPlayer();
+    List<String> queueContents = musicManager.scheduler.getQueueContents();
+    String printMessage = "Tracks in the queue:\n";
+    for (String track:
+         queueContents) {
+      printMessage = printMessage + track + "\n";
+    }
+    channel.sendMessage(printMessage).queue();
   }
 
   private void pauseTrack(final MessageChannel channel){
@@ -163,6 +178,7 @@ public class Main extends ListenerAdapter {
         int timeStart = trackUrl.lastIndexOf('=');
         if(timeStart != -1){
           String timeString = trackUrl.substring(timeStart);
+
           //The format will be 1h2m53s, need to parse that into seconds and then call
           //track.setPosition(long position)
 
