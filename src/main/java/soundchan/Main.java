@@ -12,13 +12,10 @@ import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.events.channel.voice.update.GenericVoiceChannelUpdateEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
-import net.dv8tion.jda.core.events.user.GenericUserPresenceEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
 
@@ -148,7 +145,8 @@ public class Main extends ListenerAdapter {
         pauseTrack(channel);
     } else if ("~unpause".equals(command[0])) {
         unpauseTrack(channel);
-      }}
+      }
+    }
 
     super.onMessageReceived(event);
   }
