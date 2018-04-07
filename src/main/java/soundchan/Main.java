@@ -14,8 +14,11 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.core.events.channel.voice.update.GenericVoiceChannelUpdateEvent;
+import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
+import net.dv8tion.jda.core.events.user.GenericUserPresenceEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
 
@@ -34,6 +37,7 @@ public class Main extends ListenerAdapter {
         .buildBlocking();
 
     jda.addEventListener(new Main());
+    followingUser = properties.getProperty("followingUser");
   }
 
   private static Properties LoadProperties(){
@@ -57,6 +61,7 @@ public class Main extends ListenerAdapter {
 
   private long monitoredGuildId = -1;
   private Guild monitoredGuild;
+  private static String followingUser;
   private final AudioPlayerManager playerManager;
   private final Map<Long, GuildMusicManager> musicManagers;
 
@@ -99,6 +104,18 @@ public class Main extends ListenerAdapter {
   @Override
   public void onCallVoiceJoin(CallVoiceJoinEvent event){
     
+  }
+
+
+  @Override
+  public void onGuildVoiceMove(GuildVoiceMoveEvent event) {
+    if(event.getMember().getEffectiveName().compareTo(followingUser) == 0) {
+      AudioManager audioManager = monitoredGuild.getAudioManager();
+      if(!audioManager.isAttemptingToConnect()) {
+        audioManager.openAudioConnection(event.getChannelJoined());
+      }
+    }
+    super.onGuildVoiceMove(event);
   }
 
   @Override
@@ -213,8 +230,12 @@ public class Main extends ListenerAdapter {
   private static void connectToFirstVoiceChannel(AudioManager audioManager) {
     if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
       for (VoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
-        audioManager.openAudioConnection(voiceChannel);
-        break;
+        for(int i = 0; i < voiceChannel.getMembers().size(); i++) {
+          if(voiceChannel.getMembers().get(i).getEffectiveName().compareTo(followingUser) == 0) {
+            audioManager.openAudioConnection(voiceChannel);
+            break;
+          }
+        }
       }
     }
   }
