@@ -33,6 +33,8 @@ public class Main extends ListenerAdapter {
         .setToken(properties.getProperty("botToken"))
         .buildBlocking();
 
+    localFilePath = properties.getProperty("localFilePath");
+
     jda.addEventListener(new Main());
     followingUser = properties.getProperty("followingUser");
   }
@@ -59,6 +61,7 @@ public class Main extends ListenerAdapter {
   private long monitoredGuildId = -1;
   private Guild monitoredGuild;
   private static String followingUser;
+  private static String localFilePath;
   private final AudioPlayerManager playerManager;
   private final Map<Long, GuildMusicManager> musicManagers;
 
@@ -135,17 +138,29 @@ public class Main extends ListenerAdapter {
     }
 
     if(monitoredGuild != null){
-    if ("~play".equals(command[0]) && command.length == 2) {
-        loadAndPlay(channel, command[1]);
-    } else if ("~skip".equals(command[0])) {
-        skipTrack(channel);
-    } else if ("~volume".equals(command[0]) && command.length == 2) {
-        changeVolume(channel, command[1]);
-    } else if ("~pause".equals(command[0])) {
-        pauseTrack(channel);
-    } else if ("~unpause".equals(command[0])) {
-        unpauseTrack(channel);
+
+      // "!" Signifies that you're looking to play a sound effect
+      if(command[0].startsWith("!") && command[0].length() > 1){
+        loadAndPlay(channel, localFilePath + "\\" + command[0].substring(1) + ".mp3");
       }
+
+      // "~" Signifies that you're looking to play a song/sound from a url
+      if(command[0].startsWith("~") && command[0].length() > 1){
+        if ("~play".equals(command[0]) && command.length == 2) {
+            loadAndPlay(channel, command[1]);
+        } else if ("~skip".equals(command[0])) {
+            skipTrack(channel);
+        } else if ("~volume".equals(command[0]) && command.length == 2) {
+            changeVolume(channel, command[1]);
+        } else if ("~pause".equals(command[0])) {
+            pauseTrack(channel);
+        } else if ("~unpause".equals(command[0])) {
+            unpauseTrack(channel);
+        } else if ("~list".equals(command[0])) {
+          listTracks(channel);
+        }
+      }
+
     }
 
     super.onMessageReceived(event);
@@ -155,6 +170,17 @@ public class Main extends ListenerAdapter {
     GuildMusicManager musicManager = getGuildAudioPlayer();
     musicManager.player.setVolume(Integer.parseInt(volume));
     channel.sendMessage("Volume now set to " + volume + "%").queue();
+  }
+
+  private void listTracks(final MessageChannel channel) {
+    GuildMusicManager musicManager = getGuildAudioPlayer();
+    List<String> queueContents = musicManager.scheduler.getQueueContents();
+    String printMessage = "Tracks in the queue:\n";
+    for (String track:
+         queueContents) {
+      printMessage = printMessage + track + "\n";
+    }
+    channel.sendMessage(printMessage).queue();
   }
 
   private void pauseTrack(final MessageChannel channel){
@@ -178,6 +204,7 @@ public class Main extends ListenerAdapter {
         int timeStart = trackUrl.lastIndexOf('=');
         if(timeStart != -1){
           String timeString = trackUrl.substring(timeStart);
+
           //The format will be 1h2m53s, need to parse that into seconds and then call
           //track.setPosition(long position)
 

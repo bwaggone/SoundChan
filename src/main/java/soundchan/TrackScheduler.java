@@ -2,9 +2,14 @@ package soundchan;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -35,6 +40,17 @@ public class TrackScheduler extends AudioEventAdapter {
     if (!player.startTrack(track, true)) {
       queue.offer(track);
     }
+  }
+
+  public List<String> getQueueContents() {
+    // Returns a list of the tracks in the queue
+    Object[] queueInfo = queue.toArray();
+    List<String> tracks = new ArrayList<>();
+    for (Object item:
+         queueInfo) {
+      tracks.add(((DelegatedAudioTrack) item).getInfo().title);
+    }
+    return tracks;
   }
 
   /**
