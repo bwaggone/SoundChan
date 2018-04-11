@@ -20,3 +20,18 @@ To run the sound bot on your Server, you'll need a developer's bot token from Di
 * `com.sedmelluq:lavaplayer:1.2.53`
 
 More information to come.
+
+## Todo
+
+* Move the ExtendedListenerAdapter outside of main
+* Add a monitor for updated files (refresh every few minutes or on command?)
+* Add pre-emption support for sound effects (without disturbing the queue)
+* Support seeking (starting a track at any point, or skipping ahead in the track)
+* User roles
+* Help command
+* Document run steps properly
+* Package a batch file / bash file for easy use
+* List currently playing song
+* Like or dislike support for currently playing track
+* Have SoundChan reply with a voice bot
+* Turn features on and off using config files
