@@ -33,10 +33,11 @@ public class Main extends ListenerAdapter {
         .setToken(properties.getProperty("botToken"))
         .buildBlocking();
 
-    localFilePath = properties.getProperty("localFilePath");
 
     jda.addEventListener(new Main());
+    localFilePath = properties.getProperty("localFilePath");
     followingUser = properties.getProperty("followingUser");
+    localManager = new LocalAudioManager(localFilePath);
   }
 
   private static Properties LoadProperties(){
@@ -62,6 +63,7 @@ public class Main extends ListenerAdapter {
   private Guild monitoredGuild;
   private static String followingUser;
   private static String localFilePath;
+  private static LocalAudioManager localManager;
   private final AudioPlayerManager playerManager;
   private final Map<Long, GuildMusicManager> musicManagers;
 
@@ -71,20 +73,6 @@ public class Main extends ListenerAdapter {
     this.playerManager = new DefaultAudioPlayerManager();
     AudioSourceManagers.registerRemoteSources(playerManager);
     AudioSourceManagers.registerLocalSource(playerManager);
-  }
-
-  private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild) {
-    long guildId = Long.parseLong(guild.getId());
-    GuildMusicManager musicManager = musicManagers.get(guildId);
-
-    if (musicManager == null) {
-      musicManager = new GuildMusicManager(playerManager);
-      musicManagers.put(guildId, musicManager);
-    }
-
-    guild.getAudioManager().setSendingHandler(musicManager.getSendHandler());
-
-    return musicManager;
   }
 
   private synchronized GuildMusicManager getGuildAudioPlayer() {
@@ -141,7 +129,13 @@ public class Main extends ListenerAdapter {
 
       // "!" Signifies that you're looking to play a sound effect
       if(command[0].startsWith("!") && command[0].length() > 1){
-        loadAndPlay(channel, localFilePath + "\\" + command[0].substring(1) + ".mp3");
+        String filepath = localManager.GetFilePath(command[0].substring(1));
+        if(!filepath.contentEquals("")) {
+          loadAndPlay(channel, filepath);
+        }
+        else{
+          channel.sendMessage("File \"" + command[0].substring(1) + "\" not found!").queue();
+        }
       }
 
       // "~" Signifies that you're looking to play a song/sound from a url
@@ -157,7 +151,14 @@ public class Main extends ListenerAdapter {
         } else if ("~unpause".equals(command[0])) {
             unpauseTrack(channel);
         } else if ("~list".equals(command[0])) {
-          listTracks(channel);
+          if(command.length == 2){
+            if(command[1].equals("queue")){
+              listTracks(channel);
+            }
+            else if(command[1].equals("sounds")){
+                localManager.ListSounds(channel);
+            }
+          }
         }
       }
 
@@ -240,7 +241,7 @@ public class Main extends ListenerAdapter {
   }
 
   private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track) {
-    connectToFirstVoiceChannel(guild.getAudioManager());
+    connectToFollowingVoiceChannel(guild.getAudioManager());
 
     musicManager.scheduler.queue(track);
   }
@@ -252,7 +253,8 @@ public class Main extends ListenerAdapter {
     channel.sendMessage("Skipped to next track.").queue();
   }
 
-  private static void connectToFirstVoiceChannel(AudioManager audioManager) {
+
+  private static void connectToFollowingVoiceChannel(AudioManager audioManager) {
     if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
       for (VoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
         for(int i = 0; i < voiceChannel.getMembers().size(); i++) {
