@@ -1,0 +1,8 @@
+//The Bot Token you will have received from the discord developers page
+botToken=BOT_TOKEN_FROM_DISCORD
+
+//The local file path to the directory of your sounds. Don't forget to escape your slashes
+localFilePath=C:\\PATH\\TO\\SOUNDS\\DIRECTORY
+
+//The user for the 
+followingUser=USERNAME
