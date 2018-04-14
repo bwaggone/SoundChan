@@ -1,4 +1,4 @@
-package soundchan;
+package soundchan.BotListener;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -15,7 +15,7 @@ import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
-import net.dv8tion.jda.core.managers.ChannelManager;
+import soundchan.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -95,7 +95,7 @@ public class BotListener extends ListenerAdapter{
             if(command[0].startsWith("!") && command[0].length() > 1){
                 String filepath = localManager.GetFilePath(command[0].substring(1));
                 if(!filepath.contentEquals("")) {
-                    loadAndPlay(channel, filepath);
+                    loadAndPlay(channel, filepath, true);
                 }
                 else{
                     channel.sendMessage("File \"" + command[0].substring(1) + "\" not found!").queue();
@@ -103,52 +103,48 @@ public class BotListener extends ListenerAdapter{
             }
 
             if(command[0].startsWith("~")){
-                switch (Commands.valueOf(command[0].substring(1))){
-                    case play: {
-                        if(command.length == 2)
-                            loadAndPlay(channel, command[1]);
-                        break;
-                    }
-                    case skip: {
-                        skipTrack(channel);
-                        break;
-                    }
-                    case volume: {
-                        if(command.length == 2)
-                            changeVolume(channel, command[1]);
-                        break;
-                    }
-                    case list: {
-                        if(command.length == 2){
-                            if(command[1].equals("queue")){
-                                listTracks(channel);
-                            }
-                            else if(command[1].equals("sounds")){
-                                localManager.ListSounds(channel);
-                            }
+                Commands enumCommand = Commands.valueOf(command[0].substring(1));
+                if(enumCommand == Commands.play){
+                    // Play a song or video
+                    if(command.length == 2)
+                        loadAndPlay(channel, command[1], false);
+
+                }else if(enumCommand == Commands.skip){
+                    // Skip a song or video in the queue
+                    skipTrack(channel);
+
+                }else if(enumCommand == Commands.volume){
+                    // Change volume
+                    if(command.length == 2)
+                        changeVolume(channel, command[1]);
+
+                }else if(enumCommand == Commands.list){
+                    // List the songs/commands in the queue
+                    if(command.length == 2){
+                        if(command[1].equals("queue")){
+                            listTracks(channel);
                         }
-                        break;
+                        else if(command[1].equals("sounds")){
+                            localManager.ListSounds(channel);
+                        }
                     }
-                    case pause: {
+
+                }else if(enumCommand == Commands.pause){
+                    // Pause the song/sound in the queue
                         pauseTrack(channel);
-                        break;
-                    }
-                    case unpause: {
-                        unpauseTrack(channel);
-                        break;
-                    }
-                    case playingnow: {
-                        break;
-                    }
-                    case summon: {
-                        connectToUserVoiceChannel(guild.getAudioManager(), event.getMember().getEffectiveName());
-                        break;
-                    }
-                    case help: {
-                        help(channel);
-                        break;
-                    }
+                }else if(enumCommand == Commands.unpause){
+                    // Unpause the song/sound in the queue
+                    unpauseTrack(channel);
+
+                }else if(enumCommand == Commands.playingnow){
+                    // Print the currently playing song
+                    printCurrentlyPlaying(channel);
+                }else if(enumCommand == Commands.summon){
+                    connectToUserVoiceChannel(monitoredGuild.getAudioManager(), event.getMember().getEffectiveName());
+                }else if(enumCommand == Commands.help){
+                    help(channel);
                 }
+
             }
 
         }
@@ -185,7 +181,14 @@ public class BotListener extends ListenerAdapter{
         channel.sendMessage("Unpaused playback.").queue();
     }
 
-    private void loadAndPlay(final MessageChannel channel, final String trackUrl) {
+    private void printCurrentlyPlaying(final MessageChannel channel){
+        GuildMusicManager musicManager = getGuildAudioPlayer();
+        AudioTrack currentlyPlaying = musicManager.player.getPlayingTrack();
+        channel.sendMessage("Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author).queue();
+
+    }
+
+    private void loadAndPlay(final MessageChannel channel, final String trackUrl, boolean preempt) {
         GuildMusicManager musicManager = getGuildAudioPlayer();
 
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
@@ -199,9 +202,10 @@ public class BotListener extends ListenerAdapter{
                     //track.setPosition(long position)
 
                 }
-                channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
+                if(!preempt)
+                    channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
 
-                play(monitoredGuild, musicManager, track);
+                play(monitoredGuild, musicManager, track, preempt);
             }
 
             @Override
@@ -214,7 +218,7 @@ public class BotListener extends ListenerAdapter{
 
                 channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
 
-                play(monitoredGuild, musicManager, firstTrack);
+                play(monitoredGuild, musicManager, firstTrack, false);
             }
 
             @Override
@@ -229,10 +233,13 @@ public class BotListener extends ListenerAdapter{
         });
     }
 
-    private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track) {
+    private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track, boolean preempt) {
         connectToFollowingVoiceChannel(guild.getAudioManager());
 
-        musicManager.scheduler.queue(track);
+        if(!preempt)
+            musicManager.scheduler.queue(track);
+        else
+            musicManager.scheduler.playNow(track);
     }
 
     private void skipTrack(MessageChannel channel) {

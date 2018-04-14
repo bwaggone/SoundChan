@@ -31,11 +31,12 @@ public class LocalAudioManager {
 
     public void ListSounds(MessageChannel channel){
         Set<String> localSounds = filenameDict.keySet();
-        String toPrint = "The following sounds you can play are:\n";
+        String toPrint = "The following sounds you can play are:\n```";
         for (String sound:
                 localSounds) {
             toPrint = toPrint + " * " + sound + "\n";
         }
+        toPrint = toPrint + "```";
         channel.sendMessage(toPrint).queue();
     }
 
