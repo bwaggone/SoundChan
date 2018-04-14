@@ -10,7 +10,9 @@ import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -18,14 +20,14 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TrackScheduler extends AudioEventAdapter {
   private final AudioPlayer player;
-  private final BlockingQueue<AudioTrack> queue;
+  private final BlockingDeque<AudioTrack> queue;
 
   /**
    * @param player The audio player this scheduler uses
    */
   public TrackScheduler(AudioPlayer player) {
     this.player = player;
-    this.queue = new LinkedBlockingQueue<>();
+    this.queue = new LinkedBlockingDeque<>();
   }
 
   /**
@@ -40,6 +42,20 @@ public class TrackScheduler extends AudioEventAdapter {
     if (!player.startTrack(track, true)) {
       queue.offer(track);
     }
+  }
+
+  public void playNow(AudioTrack track) {
+    AudioTrack currenlyPlaying = player.getPlayingTrack();
+    AudioTrack cloned = currenlyPlaying.makeClone();
+    cloned.setPosition(currenlyPlaying.getPosition());
+
+    // Don't re-enqueue if its just a soundclip
+    if(!(currenlyPlaying.getInfo().uri.contains(".mp3") || currenlyPlaying.getInfo().uri.contains(".wav")))
+      // Re-enqueue the track
+      queue.addFirst(cloned);
+
+    player.startTrack(track, false);
+
   }
 
   public List<String> getQueueContents() {
