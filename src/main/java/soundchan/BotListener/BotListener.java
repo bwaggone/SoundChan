@@ -132,7 +132,6 @@ public class BotListener extends ListenerAdapter{
                 }else if(enumCommand == Commands.pause){
                     // Pause the song/sound in the queue
                         pauseTrack(channel);
-
                 }else if(enumCommand == Commands.unpause){
                     // Unpause the song/sound in the queue
                     unpauseTrack(channel);
@@ -142,8 +141,9 @@ public class BotListener extends ListenerAdapter{
                     printCurrentlyPlaying(channel);
                 }else if(enumCommand == Commands.summon){
                     connectToUserVoiceChannel(monitoredGuild.getAudioManager(), event.getMember().getEffectiveName());
+                }else if(enumCommand == Commands.help){
+                    help(channel);
                 }
-
 
             }
 
@@ -247,6 +247,22 @@ public class BotListener extends ListenerAdapter{
         musicManager.scheduler.nextTrack();
 
         channel.sendMessage("Skipped to next track.").queue();
+    }
+
+    private void help(final MessageChannel channel) {
+        String printMessage = "List of commands:\n ```" +
+                "!<sound>     - plays a sound\n" +
+                "~play <URL>  - plays audio from link\n" +
+                "~volume #    - sets the volume to the number as a percentage \n" +
+                "~pause       - pauses the playing audio\n" +
+                "~unpause     - unpauses the audio\n" +
+                "~skip        - skips to the next song in queue\n" +
+                "~list queue  - prints out the names of the songs in the queue\n" +
+                "~list sounds - prints out the names of the sounds available\n" +
+                "~playingnow  - prints out the name of the currently playing song\n" +
+                "~summon      - brings SoundChan to the voice channel of the summoner\n" +
+                "~help        - prints out this help message ```";
+        channel.sendMessage(printMessage).queue();
     }
 
 
