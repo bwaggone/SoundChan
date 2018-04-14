@@ -140,7 +140,8 @@ public class BotListener extends ListenerAdapter{
                 }else if(enumCommand == Commands.playingnow){
                     // Print the currently playing song
                     printCurrentlyPlaying(channel);
-
+                }else if(enumCommand == Commands.summon){
+                    connectToUserVoiceChannel(monitoredGuild.getAudioManager(), event.getMember().getEffectiveName());
                 }
 
 
@@ -250,10 +251,16 @@ public class BotListener extends ListenerAdapter{
 
 
     private static void connectToFollowingVoiceChannel(AudioManager audioManager) {
-        if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
+        if(!audioManager.isConnected()) {
+            connectToUserVoiceChannel(audioManager, followingUser);
+        }
+    }
+
+    private static void connectToUserVoiceChannel(AudioManager audioManager, String user) {
+        if (!audioManager.isAttemptingToConnect()) {
             for (VoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
                 for (int i = 0; i < voiceChannel.getMembers().size(); i++) {
-                    if (voiceChannel.getMembers().get(i).getEffectiveName().compareTo(followingUser) == 0) {
+                    if (voiceChannel.getMembers().get(i).getEffectiveName().compareTo(user) == 0) {
                         audioManager.openAudioConnection(voiceChannel);
                         break;
                     }
