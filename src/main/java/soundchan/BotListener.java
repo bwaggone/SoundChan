@@ -15,6 +15,7 @@ import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
+import net.dv8tion.jda.core.managers.ChannelManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -143,6 +144,10 @@ public class BotListener extends ListenerAdapter{
                         connectToUserVoiceChannel(guild.getAudioManager(), event.getMember().getEffectiveName());
                         break;
                     }
+                    case help: {
+                        help(channel);
+                        break;
+                    }
                 }
             }
 
@@ -235,6 +240,22 @@ public class BotListener extends ListenerAdapter{
         musicManager.scheduler.nextTrack();
 
         channel.sendMessage("Skipped to next track.").queue();
+    }
+
+    private void help(final MessageChannel channel) {
+        String printMessage = "List of commands:\n ```" +
+                "!<sound>     - plays a sound\n" +
+                "~play <URL>  - plays audio from link\n" +
+                "~volume #    - sets the volume to the number as a percentage \n" +
+                "~pause       - pauses the playing audio\n" +
+                "~unpause     - unpauses the audio\n" +
+                "~skip        - skips to the next song in queue\n" +
+                "~list queue  - prints out the names of the songs in the queue\n" +
+                "~list sounds - prints out the names of the sounds available\n" +
+                "~playingnow  - prints out the name of the currently playing song\n" +
+                "~summon      - brings SoundChan to the voice channel of the summoner\n" +
+                "~help        - prints out this help message ```";
+        channel.sendMessage(printMessage).queue();
     }
 
 
