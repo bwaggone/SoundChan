@@ -77,17 +77,12 @@ public class BotListener extends ListenerAdapter{
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
+        BotListenerHelpers helper = new BotListenerHelpers();
+
         Guild guild = event.getGuild();
-        MessageChannel channel = null;
+        MessageChannel channel = helper.GetReplyChannel(event);
 
-        // This means SoundChan was DM'd
-        if (guild == null){
-            channel = event.getPrivateChannel();
-        }else{
-            // This means SoundChan was referred to in a TextChannel
-            channel = event.getTextChannel();
-        }
-
+        // If we haven't set the Monitored Guild yet, set the value
         if(monitoredGuildId == -1 && guild != null){
             monitoredGuildId = Long.parseLong(guild.getId());
             monitoredGuild = guild;
@@ -106,26 +101,43 @@ public class BotListener extends ListenerAdapter{
                 }
             }
 
-            // "~" Signifies that you're looking to play a song/sound from a url
-            if(command[0].startsWith("~") && command[0].length() > 1){
-                if ("~play".equals(command[0]) && command.length == 2) {
-                    loadAndPlay(channel, command[1]);
-                } else if ("~skip".equals(command[0])) {
-                    skipTrack(channel);
-                } else if ("~volume".equals(command[0]) && command.length == 2) {
-                    changeVolume(channel, command[1]);
-                } else if ("~pause".equals(command[0])) {
-                    pauseTrack(channel);
-                } else if ("~unpause".equals(command[0])) {
-                    unpauseTrack(channel);
-                } else if ("~list".equals(command[0])) {
-                    if(command.length == 2){
-                        if(command[1].equals("queue")){
-                            listTracks(channel);
+            if(command[0].startsWith("~")){
+                switch (Commands.valueOf(command[0].substring(1))){
+                    case play: {
+                        if(command.length == 2)
+                            loadAndPlay(channel, command[1]);
+                        break;
+                    }
+                    case skip: {
+                        skipTrack(channel);
+                        break;
+                    }
+                    case volume: {
+                        if(command.length == 2)
+                            changeVolume(channel, command[1]);
+                        break;
+                    }
+                    case list: {
+                        if(command.length == 2){
+                            if(command[1].equals("queue")){
+                                listTracks(channel);
+                            }
+                            else if(command[1].equals("sounds")){
+                                localManager.ListSounds(channel);
+                            }
                         }
-                        else if(command[1].equals("sounds")){
-                            localManager.ListSounds(channel);
-                        }
+                        break;
+                    }
+                    case pause: {
+                        pauseTrack(channel);
+                        break;
+                    }
+                    case unpause: {
+                        unpauseTrack(channel);
+                        break;
+                    }
+                    case playingnow: {
+                        break;
                     }
                 }
             }
