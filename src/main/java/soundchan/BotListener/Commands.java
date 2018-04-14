@@ -1,4 +1,4 @@
-package soundchan;
+package soundchan.BotListener;
 
 /**
  * An enum representing the possible commands SoundChan might receive
