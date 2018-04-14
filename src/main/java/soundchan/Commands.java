@@ -10,5 +10,6 @@ public enum Commands {
     unpause,
     skip,
     list,
-    playingnow
+    playingnow,
+    summon
 }
