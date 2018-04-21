@@ -4,6 +4,7 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
+
 public class BotListenerHelpers {
 
     /**
@@ -14,6 +15,31 @@ public class BotListenerHelpers {
     public MessageChannel GetReplyChannel(MessageReceivedEvent event){
         Guild guild = event.getGuild();
         return (guild == null) ? event.getPrivateChannel() : event.getTextChannel();
+    }
+
+    public long urlToTimeStamp(String url){
+
+        int[] timeConversions = {1, 60, 3600};
+        int position = url.indexOf("?t=");
+        int seekTime = 0;
+
+        if(position != -1){
+            String linkTimestamp = url.substring(position + 3);
+            String[] times = linkTimestamp.split("[hms]");
+            for(int i = 0; i < times.length / 2; i++)
+            {
+                String temp = times[i];
+                times[i] = times[times.length - i - 1];
+                times[times.length - i - 1] = temp;
+            }
+
+            for (int i = 0; i < times.length; i++) {
+                seekTime = seekTime + timeConversions[i]*Integer.parseInt(times[i]);
+            }
+            System.out.println(seekTime);
+
+        }
+        return seekTime;
     }
 
 
