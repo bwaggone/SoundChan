@@ -46,14 +46,16 @@ public class TrackScheduler extends AudioEventAdapter {
 
   public void playNow(AudioTrack track) {
     AudioTrack currenlyPlaying = player.getPlayingTrack();
-    AudioTrack cloned = currenlyPlaying.makeClone();
-    cloned.setPosition(currenlyPlaying.getPosition());
+    // If something is currently playing, pause it and put it back in the queue
+    if(currenlyPlaying != null) {
+      AudioTrack cloned = currenlyPlaying.makeClone();
+      cloned.setPosition(currenlyPlaying.getPosition());
 
-    // Don't re-enqueue if its just a soundclip
-    if(!(currenlyPlaying.getInfo().uri.contains(".mp3") || currenlyPlaying.getInfo().uri.contains(".wav")))
-      // Re-enqueue the track
-      queue.addFirst(cloned);
-
+      // Don't re-enqueue if its just a soundclip
+      if (!(currenlyPlaying.getInfo().uri.contains(".mp3") || currenlyPlaying.getInfo().uri.contains(".wav")))
+        // Re-enqueue the track
+        queue.addFirst(cloned);
+    }
     player.startTrack(track, false);
 
   }

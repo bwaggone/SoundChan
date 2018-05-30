@@ -31,6 +31,7 @@ public class BotListener extends ListenerAdapter{
     private static LocalAudioManager localManager;
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
+    private BotListenerHelpers helper = new BotListenerHelpers();
 
     public BotListener(Properties properties) {
         this.musicManagers = new HashMap<>();
@@ -78,7 +79,6 @@ public class BotListener extends ListenerAdapter{
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
-        BotListenerHelpers helper = new BotListenerHelpers();
 
         Guild guild = event.getGuild();
         MessageChannel channel = helper.GetReplyChannel(event);
@@ -202,8 +202,10 @@ public class BotListener extends ListenerAdapter{
                     //track.setPosition(long position)
 
                 }
-                if(!preempt)
+                if(!preempt) {
+                    helper.urlToTimeStamp(trackUrl);
                     channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
+                }
 
                 play(monitoredGuild, musicManager, track, preempt);
             }
