@@ -6,3 +6,6 @@ localFilePath=C:\\PATH\\TO\\SOUNDS\\DIRECTORY
 
 //The user for the 
 followingUser=USERNAME
+
+//If you want SoundChan to play an audio file whit their name when a user joins the channel
+audioOnUserJoin=on/off

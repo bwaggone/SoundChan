@@ -11,6 +11,7 @@ import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -26,12 +27,15 @@ public class BotListener extends ListenerAdapter{
 
     private long monitoredGuildId = -1;
     private Guild monitoredGuild;
-    private static String followingUser;
-    private static String localFilePath;
     private static LocalAudioManager localManager;
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
+
+    // From configuration file
+    private static String followingUser;
+    private static String localFilePath;
+    private static boolean audioOnUserJoin;
 
     public BotListener(Properties properties) {
         this.musicManagers = new HashMap<>();
@@ -42,6 +46,8 @@ public class BotListener extends ListenerAdapter{
 
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
+        String temp = properties.getProperty("audioOnUserJoin");
+        audioOnUserJoin = settingEnableCheck(temp);
         localManager = new LocalAudioManager(localFilePath);
     }
 
@@ -61,7 +67,59 @@ public class BotListener extends ListenerAdapter{
 
     @Override
     public void onCallVoiceJoin(CallVoiceJoinEvent event){
+        super.onCallVoiceJoin(event);
+    }
 
+    /**
+     * Plays an audio clip when a user connects to the voice channel if enabled in the config file. For the sound to play,
+     * there needs to be a sound file with the same name as the user, otherwise it won't play anything.
+     * @param event
+     */
+    @Override
+    public void onGuildVoiceJoin(GuildVoiceJoinEvent event) {
+        if(audioOnUserJoin) {
+            String filepath = localManager.GetFilePath(event.getMember().getEffectiveName());
+            if (!filepath.contentEquals("")) {
+                GuildMusicManager musicManager = getGuildAudioPlayer();
+
+                playerManager.loadItemOrdered(musicManager, filepath, new AudioLoadResultHandler() {
+                    @Override
+                    public void trackLoaded(AudioTrack track) {
+                        int timeStart = filepath.lastIndexOf('=');
+                        if (timeStart != -1) {
+                            String timeString = filepath.substring(timeStart);
+
+                            //The format will be 1h2m53s, need to parse that into seconds and then call
+                            //track.setPosition(long position)
+
+                        }
+
+                        play(monitoredGuild, musicManager, track, true);
+                    }
+
+                    @Override
+                    public void playlistLoaded(AudioPlaylist playlist) {
+                        AudioTrack firstTrack = playlist.getSelectedTrack();
+
+                        if (firstTrack == null) {
+                            firstTrack = playlist.getTracks().get(0);
+                        }
+                        play(monitoredGuild, musicManager, firstTrack, false);
+                    }
+
+                    @Override
+                    public void noMatches() {
+                        //channel.sendMessage("Nothing found by " + trackUrl).queue();
+                    }
+
+                    @Override
+                    public void loadFailed(FriendlyException exception) {
+                        //channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+                    }
+                });
+            }
+        }
+        super.onGuildVoiceJoin(event);
     }
 
 
@@ -285,6 +343,20 @@ public class BotListener extends ListenerAdapter{
                 }
             }
         }
+    }
+
+    /**
+     * Checks the string for some reason to enable/disable a setting.
+     * @param value A string (probably read in from config file)
+     * @return True if it matches a value to enable, False otherwise
+     */
+    private static boolean settingEnableCheck(String value) {
+        if(value.contentEquals("true") || value.contentEquals("1") ||
+                value.contentEquals("yes") || value.contentEquals("on") ||
+                value.contentEquals("enable"))
+            return true;
+        else
+            return false;
     }
 
 }
