@@ -85,15 +85,6 @@ public class BotListener extends ListenerAdapter{
                 playerManager.loadItemOrdered(musicManager, filepath, new AudioLoadResultHandler() {
                     @Override
                     public void trackLoaded(AudioTrack track) {
-                        int timeStart = filepath.lastIndexOf('=');
-                        if (timeStart != -1) {
-                            String timeString = filepath.substring(timeStart);
-
-                            //The format will be 1h2m53s, need to parse that into seconds and then call
-                            //track.setPosition(long position)
-
-                        }
-
                         play(monitoredGuild, musicManager, track, true);
                     }
 
@@ -109,12 +100,12 @@ public class BotListener extends ListenerAdapter{
 
                     @Override
                     public void noMatches() {
-                        //channel.sendMessage("Nothing found by " + trackUrl).queue();
+                        // Needed, but shouldn't be called
                     }
 
                     @Override
                     public void loadFailed(FriendlyException exception) {
-                        //channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+                        // Needed, but shouldn't be called
                     }
                 });
             }
@@ -351,6 +342,7 @@ public class BotListener extends ListenerAdapter{
      * @return True if it matches a value to enable, False otherwise
      */
     private static boolean settingEnableCheck(String value) {
+        value = value.toLowerCase();
         if(value.contentEquals("true") || value.contentEquals("1") ||
                 value.contentEquals("yes") || value.contentEquals("on") ||
                 value.contentEquals("enable"))
