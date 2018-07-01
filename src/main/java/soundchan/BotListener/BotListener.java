@@ -101,11 +101,13 @@ public class BotListener extends ListenerAdapter{
                     @Override
                     public void noMatches() {
                         // Needed, but shouldn't be called
+                        System.out.println("Nothing found for " + event.getMember().getEffectiveName());
                     }
 
                     @Override
                     public void loadFailed(FriendlyException exception) {
                         // Needed, but shouldn't be called
+                        System.out.println("Could not play: " + exception.getMessage());
                     }
                 });
             }
