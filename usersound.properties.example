@@ -1,0 +1,4 @@
+//Here we can map a user to a sound file, so many users can share the same intro soundbite and/or so you don't have to have extra copies of the same sound file
+
+//Discord user and the file (with extension)
+Queen=WeAreTheChampions.mp3

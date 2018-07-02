@@ -7,5 +7,8 @@ localFilePath=C:\\PATH\\TO\\SOUNDS\\DIRECTORY
 //The user for the 
 followingUser=USERNAME
 
-//If you want SoundChan to play an audio file whit their name when a user joins the channel
+//If you want SoundChan to play an audio file whit their name when a user joins the channel or have that information come from below file
 audioOnUserJoin=on/off
+
+//The file where users and sound clips are related, see usersound.properties.example for more info
+userAudioFilePath=C:\\PATH\\TO\\USER\\SOUND\\FILE

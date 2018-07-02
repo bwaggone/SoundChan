@@ -48,7 +48,11 @@ public class BotListener extends ListenerAdapter{
         followingUser = properties.getProperty("followingUser");
         String temp = properties.getProperty("audioOnUserJoin");
         audioOnUserJoin = settingEnableCheck(temp);
-        localManager = new LocalAudioManager(localFilePath);
+        if(audioOnUserJoin) {
+            localManager = new LocalAudioManager(localFilePath, properties.getProperty("userAudioFilePath"));
+        }
+        else
+            localManager = new LocalAudioManager(localFilePath);
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer() {
