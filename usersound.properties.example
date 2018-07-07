@@ -2,3 +2,10 @@
 
 //Discord user and the file (with extension)
 Queen=WeAreTheChampions.mp3
+
+//We can also link to sounds in folders inside the main sound folder
+Shrek=More/SmashMouth.wav
+
+//Map multiple people to same sound
+Thing1=sawing_wood.wav
+Thing2=sawing_wood.wav

@@ -44,6 +44,14 @@ public class BotListener extends ListenerAdapter{
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
 
+        loadProperties(properties);
+    }
+
+    /**
+     * Loads various properties from config file
+     * @param properties Object holding the contents of the property file
+     */
+    private void loadProperties(Properties properties) {
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
         String temp = properties.getProperty("audioOnUserJoin");
