@@ -54,8 +54,7 @@ public class BotListener extends ListenerAdapter{
     private void loadProperties(Properties properties) {
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
-        String temp = properties.getProperty("audioOnUserJoin");
-        audioOnUserJoin = settingEnableCheck(temp);
+        audioOnUserJoin = settingEnableCheck(properties.getProperty("audioOnUserJoin"));
         if(audioOnUserJoin) {
             localManager = new LocalAudioManager(localFilePath, properties.getProperty("userAudioFilePath"));
         }

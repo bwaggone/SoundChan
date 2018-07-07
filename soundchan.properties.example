@@ -7,7 +7,12 @@ localFilePath=C:\\PATH\\TO\\SOUNDS\\DIRECTORY
 //The user for the 
 followingUser=USERNAME
 
+//Flag conditions enabled with any of the following values:
+// true, on, enable, yes, 1
+//any other string (or empty) will leave the condition disabled
+
 //If you want SoundChan to play an audio file whit their name when a user joins the channel or have that information come from below file
+//This is a flag condition
 audioOnUserJoin=on/off
 
 //The file where users and sound clips are related, see usersound.properties.example for more info
