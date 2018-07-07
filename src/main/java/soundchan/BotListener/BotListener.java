@@ -11,6 +11,7 @@ import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -26,12 +27,15 @@ public class BotListener extends ListenerAdapter{
 
     private long monitoredGuildId = -1;
     private Guild monitoredGuild;
-    private static String followingUser;
-    private static String localFilePath;
     private static LocalAudioManager localManager;
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
+
+    // From configuration file
+    private static String followingUser;
+    private static String localFilePath;
+    private static boolean audioOnUserJoin;
 
     public BotListener(Properties properties) {
         this.musicManagers = new HashMap<>();
@@ -40,9 +44,22 @@ public class BotListener extends ListenerAdapter{
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
 
+        loadProperties(properties);
+    }
+
+    /**
+     * Loads various properties from config file
+     * @param properties Object holding the contents of the property file
+     */
+    private void loadProperties(Properties properties) {
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
-        localManager = new LocalAudioManager(localFilePath);
+        audioOnUserJoin = settingEnableCheck(properties.getProperty("audioOnUserJoin"));
+        if(audioOnUserJoin) {
+            localManager = new LocalAudioManager(localFilePath, properties.getProperty("userAudioFilePath"));
+        }
+        else
+            localManager = new LocalAudioManager(localFilePath);
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer() {
@@ -61,7 +78,52 @@ public class BotListener extends ListenerAdapter{
 
     @Override
     public void onCallVoiceJoin(CallVoiceJoinEvent event){
+        super.onCallVoiceJoin(event);
+    }
 
+    /**
+     * Plays an audio clip when a user connects to the voice channel if enabled in the config file. For the sound to play,
+     * there needs to be a sound file with the same name as the user, otherwise it won't play anything.
+     * @param event
+     */
+    @Override
+    public void onGuildVoiceJoin(GuildVoiceJoinEvent event) {
+        if(audioOnUserJoin) {
+            String filepath = localManager.GetFilePath(event.getMember().getEffectiveName());
+            if (!filepath.contentEquals("")) {
+                GuildMusicManager musicManager = getGuildAudioPlayer();
+
+                playerManager.loadItemOrdered(musicManager, filepath, new AudioLoadResultHandler() {
+                    @Override
+                    public void trackLoaded(AudioTrack track) {
+                        play(monitoredGuild, musicManager, track, true);
+                    }
+
+                    @Override
+                    public void playlistLoaded(AudioPlaylist playlist) {
+                        AudioTrack firstTrack = playlist.getSelectedTrack();
+
+                        if (firstTrack == null) {
+                            firstTrack = playlist.getTracks().get(0);
+                        }
+                        play(monitoredGuild, musicManager, firstTrack, false);
+                    }
+
+                    @Override
+                    public void noMatches() {
+                        // Needed, but shouldn't be called
+                        System.out.println("Nothing found for " + event.getMember().getEffectiveName());
+                    }
+
+                    @Override
+                    public void loadFailed(FriendlyException exception) {
+                        // Needed, but shouldn't be called
+                        System.out.println("Could not play: " + exception.getMessage());
+                    }
+                });
+            }
+        }
+        super.onGuildVoiceJoin(event);
     }
 
 
@@ -285,6 +347,21 @@ public class BotListener extends ListenerAdapter{
                 }
             }
         }
+    }
+
+    /**
+     * Checks the string for some reason to enable/disable a setting.
+     * @param value A string (probably read in from config file)
+     * @return True if it matches a value to enable, False otherwise
+     */
+    private static boolean settingEnableCheck(String value) {
+        value = value.toLowerCase();
+        if(value.contentEquals("true") || value.contentEquals("1") ||
+                value.contentEquals("yes") || value.contentEquals("on") ||
+                value.contentEquals("enable"))
+            return true;
+        else
+            return false;
     }
 
 }
