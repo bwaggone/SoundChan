@@ -7,7 +7,7 @@ localFilePath=C:\\PATH\\TO\\SOUNDS\\DIRECTORY
 //The user for the 
 followingUser=USERNAME
 
-//Flag conditions enabled with any of the following values:
+//Flag conditions are enabled with any of the following values:
 // true, on, enable, yes, 1
 //any other string (or empty) will leave the condition disabled
 
@@ -16,4 +16,5 @@ followingUser=USERNAME
 audioOnUserJoin=on/off
 
 //The file where users and sound clips are related, see usersound.properties.example for more info
+//If this is not set, it will default to usersounds.properties
 userAudioFilePath=C:\\PATH\\TO\\USER\\SOUND\\FILE

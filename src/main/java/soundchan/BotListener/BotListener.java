@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sun.istack.internal.NotNull;
 import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -51,12 +52,18 @@ public class BotListener extends ListenerAdapter{
      * Loads various properties from config file
      * @param properties Object holding the contents of the property file
      */
-    private void loadProperties(Properties properties) {
+    private void loadProperties(@NotNull Properties properties) {
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
         audioOnUserJoin = settingEnableCheck(properties.getProperty("audioOnUserJoin"));
         if(audioOnUserJoin) {
-            localManager = new LocalAudioManager(localFilePath, properties.getProperty("userAudioFilePath"));
+            String userAudioPath = properties.getProperty("userAudioFilePath");
+            if(userAudioPath.contentEquals("") || userAudioPath == null) {
+                localManager = new LocalAudioManager(localFilePath, "usersound.properties");
+            }
+            else {
+                localManager = new LocalAudioManager(localFilePath, userAudioPath);
+            }
         }
         else
             localManager = new LocalAudioManager(localFilePath);
@@ -188,6 +195,9 @@ public class BotListener extends ListenerAdapter{
                         }
                         else if(command[1].equals("sounds")){
                             localManager.ListSounds(channel);
+                        }
+                        else if(command[1].equals("users")) {
+                            localManager.ListUserAudio(channel);
                         }
                     }
 
@@ -323,6 +333,7 @@ public class BotListener extends ListenerAdapter{
                 "~skip        - skips to the next song in queue\n" +
                 "~list queue  - prints out the names of the songs in the queue\n" +
                 "~list sounds - prints out the names of the sounds available\n" +
+                "~list users  - prints out users with audio that will play when they join the voice channel\n" +
                 "~playingnow  - prints out the name of the currently playing song\n" +
                 "~summon      - brings SoundChan to the voice channel of the summoner\n" +
                 "~help        - prints out this help message ```";
