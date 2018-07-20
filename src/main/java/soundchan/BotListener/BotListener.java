@@ -58,7 +58,7 @@ public class BotListener extends ListenerAdapter{
         audioOnUserJoin = settingEnableCheck(properties.getProperty("audioOnUserJoin"));
         if(audioOnUserJoin) {
             String userAudioPath = properties.getProperty("userAudioFilePath");
-            if(userAudioPath.contentEquals("") || userAudioPath == null) {
+            if(userAudioPath == null || userAudioPath.contentEquals("")) {
                 localManager = new LocalAudioManager(localFilePath, "usersound.properties");
             }
             else {

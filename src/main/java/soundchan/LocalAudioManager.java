@@ -122,19 +122,23 @@ public class LocalAudioManager {
     private static Properties LoadProperties(String filename){
         Properties properties = new Properties();
         InputStream input = null;
-        try{
-            input = new FileInputStream(filename);
-            properties.load(input);
-
-        }catch (IOException ex){
-            ex.printStackTrace();
-        } finally {
+        File file = new File(filename);
+        if(file.exists() && !file.isDirectory()) {
             try {
-                input.close();
+                input = new FileInputStream(filename);
+                properties.load(input);
             } catch (IOException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    input.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
+            return properties;
+        } else {
+            return properties;
         }
-        return properties;
     }
 }
