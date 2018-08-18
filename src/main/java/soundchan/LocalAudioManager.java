@@ -72,6 +72,21 @@ public class LocalAudioManager {
         channel.sendMessage(toPrint).queue();
     }
 
+    /**
+     * Lists users with sounds that will play when they join the voice channel
+     * @param channel Text channel messaged on
+     */
+    public void ListUserAudio(MessageChannel channel) {
+        Set<String> userSounds = usernameDict.keySet();
+        String toPrint = "The following users have sounds that will play when they join the voice channel:\n```";
+        for (String user : userSounds) {
+            String sound = usernameDict.get(user);
+            toPrint =  toPrint + " * " + user + "\t" + sound.substring(0, sound.indexOf('.')) + "\n";
+        }
+        toPrint = toPrint + "```";
+        channel.sendMessage(toPrint).queue();
+    }
+
     private void PopulateFiles(){
         File folder = new File(filepath);
         File[] listOfFiles = folder.listFiles();
@@ -107,21 +122,23 @@ public class LocalAudioManager {
     private static Properties LoadProperties(String filename){
         Properties properties = new Properties();
         InputStream input = null;
-        try{
-            input = new FileInputStream(filename);
-            properties.load(input);
-
-        }catch (IOException ex){
-            ex.printStackTrace();
-        } finally {
+        File file = new File(filename);
+        if(file.exists() && !file.isDirectory()) {
             try {
-                input.close();
+                input = new FileInputStream(filename);
+                properties.load(input);
             } catch (IOException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    input.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
+            return properties;
+        } else {
+            return properties;
         }
-        return properties;
     }
-
-
 }
