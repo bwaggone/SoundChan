@@ -20,8 +20,7 @@ public class LocalAudioManager {
 
     public LocalAudioManager(String filepath_in){
         filepath = filepath_in;
-        filenameDict = new HashMap<>();
-        PopulateFiles();
+        filenameDict = PopulateFiles();
     }
 
     /**
@@ -31,9 +30,8 @@ public class LocalAudioManager {
      */
     public LocalAudioManager(String filepath_in, String userSoundFile) {
         filepath = filepath_in;
-        filenameDict = new HashMap<>();
+        filenameDict = PopulateFiles();
         usernameDict = new HashMap<>();
-        PopulateFiles();
         MapUserAudio(userSoundFile);
     }
 
@@ -87,16 +85,26 @@ public class LocalAudioManager {
         channel.sendMessage(toPrint).queue();
     }
 
-    private void PopulateFiles(){
+    /**
+     * Updates the map of sound files
+     */
+    public void UpdateFiles() {
+        filenameDict = PopulateFiles();
+    }
+
+    private Map<String, String> PopulateFiles(){
         File folder = new File(filepath);
         File[] listOfFiles = folder.listFiles();
+
+        Map<String, String> fileDict = new HashMap<>();
 
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 String filename = file.getName();
-                filenameDict.put(filename.substring(0, filename.indexOf('.')), filename);
+                fileDict.put(filename.substring(0, filename.indexOf('.')), filename);
             }
         }
+        return fileDict;
     }
 
     /**

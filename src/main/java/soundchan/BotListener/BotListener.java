@@ -23,6 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class BotListener extends ListenerAdapter{
 
@@ -32,6 +36,8 @@ public class BotListener extends ListenerAdapter{
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
+    private ExecutorService executorService;
+    private Future<?> future;
 
     // From configuration file
     private static String followingUser;
@@ -44,6 +50,8 @@ public class BotListener extends ListenerAdapter{
         this.playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
+
+        executorService = Executors.newSingleThreadExecutor();
 
         loadProperties(properties);
     }
@@ -67,6 +75,11 @@ public class BotListener extends ListenerAdapter{
         }
         else
             localManager = new LocalAudioManager(localFilePath);
+
+        DirectoryWatcher directoryWatcher = new DirectoryWatcher(localManager, localFilePath);
+        future = executorService.submit(directoryWatcher);
+        executorService.shutdown();
+
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer() {
