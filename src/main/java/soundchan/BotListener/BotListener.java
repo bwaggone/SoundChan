@@ -36,7 +36,6 @@ public class BotListener extends ListenerAdapter{
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
-    private ExecutorService executorService;
     private Future<?> future;
 
     // From configuration file
@@ -50,8 +49,6 @@ public class BotListener extends ListenerAdapter{
         this.playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
-
-        executorService = Executors.newSingleThreadExecutor();
 
         loadProperties(properties);
     }
@@ -75,10 +72,13 @@ public class BotListener extends ListenerAdapter{
         }
         else
             localManager = new LocalAudioManager(localFilePath);
-
-        DirectoryWatcher directoryWatcher = new DirectoryWatcher(localManager, localFilePath);
-        future = executorService.submit(directoryWatcher);
-        executorService.shutdown();
+        
+        if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            DirectoryWatcher directoryWatcher = new DirectoryWatcher(localManager, localFilePath);
+            future = executorService.submit(directoryWatcher);
+            executorService.shutdown();
+        }
 
     }
 
