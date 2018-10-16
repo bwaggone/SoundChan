@@ -92,6 +92,10 @@ public class LocalAudioManager {
         filenameDict = PopulateFiles();
     }
 
+    /**
+     * Creates a map of the sounds in the sound directory
+     * @return A map with the filename (without extension) is the key for the filename (with extension)
+     */
     private Map<String, String> PopulateFiles(){
         File folder = new File(filepath);
         File[] listOfFiles = folder.listFiles();
