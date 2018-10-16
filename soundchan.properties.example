@@ -24,3 +24,7 @@ audioOnUserJoin=FLAG_CONDITION
 //The file where users and sound clips are related, see usersound.properties.example for more info
 //If this is not set, it will default to usersounds.properties
 userAudioFilePath=C:\\PATH\\TO\\USER\\SOUND\\FILE
+
+//Flag for watching the user sound file for changes
+//If audioOnUserJoin is not enabled, then this will do nothing
+watchUserSoundFile=FLAG_CONDITION

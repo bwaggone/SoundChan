@@ -17,9 +17,11 @@ public class LocalAudioManager {
     public Map<String, String> filenameDict;
     public Map<String, String> usernameDict;
     private String filepath;
+    private String userSoundFilepath;
 
     public LocalAudioManager(String filepath_in){
         filepath = filepath_in;
+        userSoundFilepath = null;
         filenameDict = PopulateFiles();
     }
 
@@ -30,9 +32,9 @@ public class LocalAudioManager {
      */
     public LocalAudioManager(String filepath_in, String userSoundFile) {
         filepath = filepath_in;
+        userSoundFilepath = userSoundFile;
         filenameDict = PopulateFiles();
-        usernameDict = new HashMap<>();
-        MapUserAudio(userSoundFile);
+        usernameDict = MapUserAudio();
     }
 
     /**
@@ -93,6 +95,15 @@ public class LocalAudioManager {
     }
 
     /**
+     * Updates the map of usernames to sound files
+     */
+    public void UpdateUserAudio() {
+        if(userSoundFilepath != null | userSoundFilepath.contentEquals("")) {
+            usernameDict = MapUserAudio();
+        }
+    }
+
+    /**
      * Creates a map of the sounds in the sound directory
      * @return A map with the filename (without extension) is the key for the filename (with extension)
      */
@@ -114,16 +125,19 @@ public class LocalAudioManager {
     /**
      * Reads in users and their respective sounds from file, then builds a map of users to the filenames. This assumes
      * filenames for the sounds are valid, but doesn't check for them.
-     * @param userSoundFile The file (with path if required) with listing of users and the sounds to play when they join
+     * @return A map with the usernames as the keys for the filename of the sound
      */
-    private void MapUserAudio(String userSoundFile) {
-        Properties userSoundProp = LoadProperties(userSoundFile);
+    private Map<String, String> MapUserAudio() {
+        Properties userSoundProp = LoadProperties(userSoundFilepath);
         Set<String> users = userSoundProp.stringPropertyNames();
+
+        Map<String, String> userDict = new HashMap<>();
+
         for(String user : users) {
             String soundFile = userSoundProp.getProperty(user);
-            usernameDict.put(user, soundFile);
+            userDict.put(user, soundFile);
         }
-
+        return userDict;
     }
 
     /**

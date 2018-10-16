@@ -64,15 +64,20 @@ public class BotListener extends ListenerAdapter{
         if(audioOnUserJoin) {
             String userAudioPath = properties.getProperty("userAudioFilePath");
             if(userAudioPath == null || userAudioPath.contentEquals("")) {
-                localManager = new LocalAudioManager(localFilePath, "usersound.properties");
+                userAudioPath = "usersound.properties";
             }
-            else {
-                localManager = new LocalAudioManager(localFilePath, userAudioPath);
+            localManager = new LocalAudioManager(localFilePath, userAudioPath);
+
+            if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                UserSoundWatcher userSoundWatcher = new UserSoundWatcher(localManager, userAudioPath);
+                future = executorService.submit(userSoundWatcher);
+                executorService.shutdown();
             }
         }
         else
             localManager = new LocalAudioManager(localFilePath);
-        
+
         if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             DirectoryWatcher directoryWatcher = new DirectoryWatcher(localManager, localFilePath);
@@ -379,6 +384,8 @@ public class BotListener extends ListenerAdapter{
      * @return True if it matches a value to enable, False otherwise
      */
     private static boolean settingEnableCheck(String value) {
+        if(value == null)
+            return false;
         value = value.toLowerCase();
         if(value.contentEquals("true") || value.contentEquals("1") ||
                 value.contentEquals("yes") || value.contentEquals("on") ||
