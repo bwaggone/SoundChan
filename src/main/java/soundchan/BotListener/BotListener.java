@@ -36,7 +36,7 @@ public class BotListener extends ListenerAdapter{
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
-    private Future<?> future;
+    private Map<String, Future<?> > otherTasks;
 
     // From configuration file
     private static String followingUser;
@@ -71,7 +71,7 @@ public class BotListener extends ListenerAdapter{
             if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
                 ExecutorService executorService = Executors.newSingleThreadExecutor();
                 UserSoundWatcher userSoundWatcher = new UserSoundWatcher(localManager, userAudioPath);
-                future = executorService.submit(userSoundWatcher);
+                otherTasks.put("watchUserSoundFile", executorService.submit(userSoundWatcher));
                 executorService.shutdown();
             }
         }
@@ -81,7 +81,7 @@ public class BotListener extends ListenerAdapter{
         if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             DirectoryWatcher directoryWatcher = new DirectoryWatcher(localManager, localFilePath);
-            future = executorService.submit(directoryWatcher);
+            otherTasks.put("watchLocalFilePath", executorService.submit(directoryWatcher));
             executorService.shutdown();
         }
 
