@@ -268,7 +268,7 @@ public class BotListener extends ListenerAdapter{
         if(currentlyPlaying != null) {
             message = "Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author;
             if(printStatus) {
-                message += ( "\nTime : " + musicManager.player.getPlayingTrack().getPosition() + " | " + musicManager.player.getPlayingTrack().getDuration()
+                message += ( "\nTime : " + currentlyPlaying.getPosition() + " | " + currentlyPlaying.getDuration()
                         + "\nPaused = " + musicManager.player.isPaused()
                         + "\nVolume = " + musicManager.player.getVolume() + "%");
             }
