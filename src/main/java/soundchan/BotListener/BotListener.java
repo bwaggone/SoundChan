@@ -268,9 +268,13 @@ public class BotListener extends ListenerAdapter{
         if(currentlyPlaying != null) {
             message = "Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author;
             if(printStatus) {
-                message += ( "\nTime : " + currentlyPlaying.getPosition() + " | " + currentlyPlaying.getDuration()
-                        + "\nPaused = " + musicManager.player.isPaused()
-                        + "\nVolume = " + musicManager.player.getVolume() + "%");
+                message += ( "\nTime : " + genTimeStamp(currentlyPlaying.getPosition()) + " | " + genTimeStamp(currentlyPlaying.getDuration()) );
+                if(musicManager.player.isPaused()) {
+                    message += "\n**Paused**";
+                } else {
+                    message += "\n*Playing*";
+                }
+                message += ( "\nVolume = " + musicManager.player.getVolume() + "%");
             }
         } else {
             message = "Nothing currently playing";
@@ -379,6 +383,19 @@ public class BotListener extends ListenerAdapter{
                 }
             }
         }
+    }
+
+    /**
+     * Creates a timestamp string from a number of milliseconds
+     * @param durationInMillis Number of milliseconds to turn into timestamp
+     * @return Timestamp in form HH:MM:ss:SSSS
+     */
+    private static String genTimeStamp(long durationInMillis) {
+        long millis = durationInMillis % 1000;
+        long second = (durationInMillis / 1000) % 60;
+        long minute = (durationInMillis / (1000 * 60)) % 60;
+        long hour = (durationInMillis / (1000 * 60 * 60)) % 24;
+        return String.format("%02d:%02d:%02d.%d", hour, minute, second, millis);
     }
 
     /**
