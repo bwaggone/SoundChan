@@ -268,7 +268,7 @@ public class BotListener extends ListenerAdapter{
         if(currentlyPlaying != null) {
             message = "Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author;
             if(printStatus) {
-                message += ( "\nTime : " + genTimeStamp(currentlyPlaying.getPosition()) + " | " + genTimeStamp(currentlyPlaying.getDuration()) );
+                message += genTimeInformation(currentlyPlaying.getPosition(), currentlyPlaying.getDuration());
                 if(musicManager.player.isPaused()) {
                     message += "\n**Paused**";
                 } else {
@@ -383,6 +383,26 @@ public class BotListener extends ListenerAdapter{
                 }
             }
         }
+    }
+
+    /**
+     * Creates a block of time information with a progressbar
+     * @param currentMillis Current position in the audio in milliseconds
+     * @param durationMillis Length of audio in milliseconds
+     * @return Time information block
+     */
+    private static String genTimeInformation(long currentMillis, long durationMillis) {
+        String message = "|";
+        int fill = (int) ((double)(currentMillis / durationMillis)) * 10;
+        for(int i = 0; i < fill; i++) {
+            message += "--";
+        }
+        message += "<>";
+        for(int i = fill; i < 10; i++) {
+            message += "--";
+        }
+        message += "|\nTime : " + genTimeStamp(currentMillis) + " | " + genTimeStamp(durationMillis);
+        return message;
     }
 
     /**
