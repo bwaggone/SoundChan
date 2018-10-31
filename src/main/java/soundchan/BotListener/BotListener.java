@@ -268,7 +268,7 @@ public class BotListener extends ListenerAdapter{
         if(currentlyPlaying != null) {
             message = "Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author;
             if(printStatus) {
-                message += genTimeInformation(currentlyPlaying.getPosition(), currentlyPlaying.getDuration());
+                message += "\n" + genTimeInformation(currentlyPlaying.getPosition(), currentlyPlaying.getDuration());
                 if(musicManager.player.isPaused()) {
                     message += "\n**Paused**";
                 } else {
@@ -393,29 +393,29 @@ public class BotListener extends ListenerAdapter{
      */
     private static String genTimeInformation(long currentMillis, long durationMillis) {
         String message = "|";
-        int fill = (int) ((double)(currentMillis / durationMillis)) * 10;
-        for(int i = 0; i < fill; i++) {
+        double temp = ((double) currentMillis / (double) durationMillis);
+        int fill = (int) (temp * 10.0);
+        for(int i = 0; i < fill - 1; i++) {
             message += "--";
         }
         message += "<>";
         for(int i = fill; i < 10; i++) {
             message += "--";
         }
-        message += "|\nTime : " + genTimeStamp(currentMillis) + " | " + genTimeStamp(durationMillis);
+        message += "|\nTime : " + genTimeStamp(currentMillis) + " / " + genTimeStamp(durationMillis);
         return message;
     }
 
     /**
      * Creates a timestamp string from a number of milliseconds
      * @param durationInMillis Number of milliseconds to turn into timestamp
-     * @return Timestamp in form HH:MM:ss:SSSS
+     * @return Timestamp in form HH:MM:ss
      */
     private static String genTimeStamp(long durationInMillis) {
-        long millis = durationInMillis % 1000;
         long second = (durationInMillis / 1000) % 60;
         long minute = (durationInMillis / (1000 * 60)) % 60;
         long hour = (durationInMillis / (1000 * 60 * 60)) % 24;
-        return String.format("%02d:%02d:%02d.%d", hour, minute, second, millis);
+        return String.format("%02d:%02d:%02d", hour, minute, second);
     }
 
     /**
