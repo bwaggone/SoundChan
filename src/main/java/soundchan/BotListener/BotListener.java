@@ -360,6 +360,7 @@ public class BotListener extends ListenerAdapter{
                 "~list sounds - prints out the names of the sounds available\n" +
                 "~list users  - prints out users with audio that will play when they join the voice channel\n" +
                 "~playingnow  - prints out the name of the currently playing song\n" +
+                "~status      - prints out status about the currently playing song\n" +
                 "~summon      - brings SoundChan to the voice channel of the summoner\n" +
                 "~help        - prints out this help message ```";
         channel.sendMessage(printMessage).queue();
