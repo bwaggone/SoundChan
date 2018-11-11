@@ -208,9 +208,12 @@ public class BotListener extends ListenerAdapter{
                     // Unpause the song/sound in the queue
                     unpauseTrack(channel);
 
-                }else if(enumCommand == Commands.playingnow){
+                }else if(enumCommand == Commands.playingnow) {
                     // Print the currently playing song
-                    printCurrentlyPlaying(channel);
+                    printCurrentlyPlaying(channel, false);
+                } else if(enumCommand == Commands.status) {
+                    // Print currently playing song with extra info
+                    printCurrentlyPlaying(channel, true);
                 }else if(enumCommand == Commands.summon){
                     connectToUserVoiceChannel(monitoredGuild.getAudioManager(), event.getMember().getEffectiveName());
                 }else if(enumCommand == Commands.help){
@@ -253,11 +256,33 @@ public class BotListener extends ListenerAdapter{
         channel.sendMessage("Unpaused playback.").queue();
     }
 
-    private void printCurrentlyPlaying(final MessageChannel channel){
+    /**
+     * Prints out information about what is currently playing and possibly information about the track and/or the audio volume
+     * @param channel The channel to respond on
+     * @param printStatus Print out extra information such as track information and/or audio volume
+     */
+    private void printCurrentlyPlaying(final MessageChannel channel, boolean printStatus){
         GuildMusicManager musicManager = getGuildAudioPlayer();
         AudioTrack currentlyPlaying = musicManager.player.getPlayingTrack();
-        channel.sendMessage("Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author).queue();
-
+        String message = "";
+        if(currentlyPlaying != null) {
+            message = "Currently Playing: " + currentlyPlaying.getInfo().title + " by " + currentlyPlaying.getInfo().author;
+            if(printStatus) {
+                message += "\n" + genTimeInformation(currentlyPlaying.getPosition(), currentlyPlaying.getDuration());
+                if(musicManager.player.isPaused()) {
+                    message += "\n**Paused**";
+                } else {
+                    message += "\n*Playing*";
+                }
+                message += ( "\nVolume = " + musicManager.player.getVolume() + "%");
+            }
+        } else {
+            message = "Nothing currently playing";
+            if(printStatus) {
+                message += ("\nVolume = " + musicManager.player.getVolume() + "%");
+            }
+        }
+        channel.sendMessage(message).queue();
     }
 
     private void loadAndPlay(final MessageChannel channel, final String trackUrl, boolean preempt) {
@@ -335,6 +360,7 @@ public class BotListener extends ListenerAdapter{
                 "~list sounds - prints out the names of the sounds available\n" +
                 "~list users  - prints out users with audio that will play when they join the voice channel\n" +
                 "~playingnow  - prints out the name of the currently playing song\n" +
+                "~status      - prints out status about the currently playing song\n" +
                 "~summon      - brings SoundChan to the voice channel of the summoner\n" +
                 "~help        - prints out this help message ```";
         channel.sendMessage(printMessage).queue();
@@ -358,6 +384,39 @@ public class BotListener extends ListenerAdapter{
                 }
             }
         }
+    }
+
+    /**
+     * Creates a block of time information with a progressbar
+     * @param currentMillis Current position in the audio in milliseconds
+     * @param durationMillis Length of audio in milliseconds
+     * @return Time information block
+     */
+    private static String genTimeInformation(long currentMillis, long durationMillis) {
+        String message = "|";
+        double temp = ((double) currentMillis / (double) durationMillis);
+        int fill = (int) (temp * 10.0);
+        for(int i = 0; i < fill - 1; i++) {
+            message += "--";
+        }
+        message += "<>";
+        for(int i = fill; i < 10; i++) {
+            message += "--";
+        }
+        message += "|\nTime : " + genTimeStamp(currentMillis) + " / " + genTimeStamp(durationMillis);
+        return message;
+    }
+
+    /**
+     * Creates a timestamp string from a number of milliseconds
+     * @param durationInMillis Number of milliseconds to turn into timestamp
+     * @return Timestamp in form HH:MM:ss
+     */
+    private static String genTimeStamp(long durationInMillis) {
+        long second = (durationInMillis / 1000) % 60;
+        long minute = (durationInMillis / (1000 * 60)) % 60;
+        long hour = (durationInMillis / (1000 * 60 * 60)) % 24;
+        return String.format("%02d:%02d:%02d", hour, minute, second);
     }
 
     /**

@@ -11,6 +11,7 @@ public enum Commands {
     skip,
     list,
     playingnow,
+    status,
     summon,
     help
 }
