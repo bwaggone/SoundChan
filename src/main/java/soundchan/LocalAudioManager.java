@@ -58,6 +58,9 @@ public class LocalAudioManager {
                 path = "";
             }
         }
+        if(path.contentEquals(filepath + "/null")) {
+            return "";
+        }
         return path;
     }
 
