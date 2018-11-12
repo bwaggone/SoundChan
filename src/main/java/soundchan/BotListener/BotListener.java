@@ -69,20 +69,14 @@ public class BotListener extends ListenerAdapter{
             localManager = new LocalAudioManager(localFilePath, userAudioPath);
 
             if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
-                ExecutorService executorService = Executors.newSingleThreadExecutor();
-                UserSoundWatcher userSoundWatcher = new UserSoundWatcher(localManager, userAudioPath);
-                otherTasks.put("watchUserSoundFile", executorService.submit(userSoundWatcher));
-                executorService.shutdown();
+                addWatcherTask(userAudioPath, "watchUserSoundFile");
             }
         }
         else
             localManager = new LocalAudioManager(localFilePath);
 
         if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            DirectoryWatcher directoryWatcher = new DirectoryWatcher(localManager, localFilePath);
-            otherTasks.put("watchLocalFilePath", executorService.submit(directoryWatcher));
-            executorService.shutdown();
+            addWatcherTask(localFilePath, "watchLocalFilePath");
         }
 
     }
@@ -393,6 +387,18 @@ public class BotListener extends ListenerAdapter{
             return true;
         else
             return false;
+    }
+
+    /**
+     * Adds a new MediaWatcher to the list of running tasks
+     * @param filepath Path to either directory or file
+     * @param taskName Thing to name task as
+     */
+    private void addWatcherTask(String filepath, String taskName) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        MediaWatcher directoryWatcher = new MediaWatcher(localManager, filepath);
+        otherTasks.put(taskName, executorService.submit(directoryWatcher));
+        executorService.shutdown();
     }
 
 }
