@@ -56,7 +56,7 @@ public class MediaWatcher implements Runnable {
     }
 
     /**
-     * Called by an executor, checks for changes in the directory
+     * Called by an executor, checks for changes to file(s)
      */
     public void run() {
         try {
