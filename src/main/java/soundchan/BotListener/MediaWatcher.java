@@ -53,6 +53,7 @@ public class MediaWatcher implements Runnable {
     /**
      * Sets up watch service for the file/directory
      * @param filepath Path to file or directory to be scanned
+     * @param watchSubDirs Also watch any subdirectories in the given directory (doesn't do anything if watching a file)
      */
     private void startWatchService(String filepath, boolean watchSubDirs) {
         File mediaFile = new File(filepath);
