@@ -21,10 +21,7 @@ import soundchan.*;
 
 import java.nio.file.WatchEvent;
 import java.sql.SQLOutput;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -62,6 +59,7 @@ public class BotListener extends ListenerAdapter{
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
         audioOnUserJoin = settingEnableCheck(properties.getProperty("audioOnUserJoin"));
+        otherTasks = new HashMap<>();
         if(audioOnUserJoin) {
             String userAudioPath = properties.getProperty("userAudioFilePath");
             if(userAudioPath == null || userAudioPath.contentEquals("")) {
@@ -70,15 +68,12 @@ public class BotListener extends ListenerAdapter{
             localManager = new LocalAudioManager(localFilePath, userAudioPath);
 
             if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
-                MediaWatcherListener listener = (event) -> System.out.println("thing");
-                addWatcherTask(listener, userAudioPath, "watchUserSoundFile");
-                /*addWatcherTask(new MediaWatcherListener() {
+                addWatcherTask(new MediaWatcherListener() {
                     @Override
                     public void runTask(WatchEvent event) {
-                        System.out.println("Aaaa");
-                        //localManager.UpdateUserAudio();
+                        localManager.UpdateUserAudio();
                     }
-                }, userAudioPath, "watchUserSoundFile");*/
+                }, userAudioPath, "watchUserSoundFile");
             }
         }
         else
@@ -88,8 +83,7 @@ public class BotListener extends ListenerAdapter{
             addWatcherTask(new MediaWatcherListener() {
                 @Override
                 public void runTask(WatchEvent event) {
-                    System.out.println("Oooo");
-                    //localManager.UpdateFiles();
+                    localManager.UpdateFiles();
                 }
             }, localFilePath, "watchLocalFilePath");
         }
