@@ -3,6 +3,7 @@ package soundchan.BotListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import static java.lang.Thread.sleep;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -29,29 +30,31 @@ public class MediaWatcher implements Runnable {
      * Defaults to scanning every 5 seconds.
      * @param listener Object that will get a callback when there is a watch event
      * @param filepath Path to either directory or specific file
+     * @param watchSubDirs Also watch any subdirectories in the given directory (doesn't do anything if watching a file)
      */
-    public MediaWatcher(MediaWatcherListener listener, String filepath) {
+    public MediaWatcher(MediaWatcherListener listener, String filepath, boolean watchSubDirs) {
         this.listener = listener;
-        startWatchService(filepath);
+        startWatchService(filepath, watchSubDirs);
     }
 
     /**
      * Creates a MediaWatcher, which monitors changes to files either within a directory or for a specific file.
      * @param listener Object that will get a callback when there is a watch event
      * @param filepath Path to either directory or specific file
+     * @param watchSubDirs Also watch any subdirectories in the given directory (doesn't do anything if watching a file)
      * @param sleepTime How long to put the scanner thread to sleep between rescans (time in milliseconds)
      */
-    public MediaWatcher(MediaWatcherListener listener, String filepath, int sleepTime) {
+    public MediaWatcher(MediaWatcherListener listener, String filepath, boolean watchSubDirs, int sleepTime) {
         this.listener = listener;
         this.sleepTime = sleepTime;
-        startWatchService(filepath);
+        startWatchService(filepath, watchSubDirs);
     }
 
     /**
      * Sets up watch service for the file/directory
      * @param filepath Path to file or directory to be scanned
      */
-    private void startWatchService(String filepath) {
+    private void startWatchService(String filepath, boolean watchSubDirs) {
         File mediaFile = new File(filepath);
         this.mediaFilename = mediaFile.getName();
         if(mediaFile.isFile()) {
@@ -68,6 +71,20 @@ public class MediaWatcher implements Runnable {
         try {
             this.watchService = FileSystems.getDefault().newWatchService();
             this.watchKey = mediaDir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+            if(isDirectory && watchSubDirs) {
+                Files.walkFileTree(mediaDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                        try {
+                            dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+                            return FileVisitResult.CONTINUE;
+                        } catch (IOException e) {
+                            System.out.println("Error setting up watch service with sub dirs in " + filepath);
+                            return FileVisitResult.SKIP_SUBTREE;
+                        }
+                    }
+                });
+            }
         } catch (IOException e) {
             System.out.println("Error setting up watcher for " + filepath);
         }

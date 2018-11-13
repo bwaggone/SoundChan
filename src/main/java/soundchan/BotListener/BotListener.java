@@ -73,7 +73,7 @@ public class BotListener extends ListenerAdapter{
                     public void onWatchEvent(WatchEvent event) {
                         localManager.UpdateUserAudio();
                     }
-                }, userAudioPath, "watchUserSoundFile");
+                }, userAudioPath, "watchUserSoundFile", false);
             }
         }
         else
@@ -85,7 +85,7 @@ public class BotListener extends ListenerAdapter{
                 public void onWatchEvent(WatchEvent event) {
                     localManager.UpdateFiles();
                 }
-            }, localFilePath, "watchLocalFilePath");
+            }, localFilePath, "watchLocalFilePath", true);
         }
 
     }
@@ -403,10 +403,11 @@ public class BotListener extends ListenerAdapter{
      * @param listener Listener that will get callback during watching of media
      * @param filepath Path to either directory or file
      * @param taskName Thing to name task as
+     * @param watchSubDirs Also watch any subdirectories in the given directory (doesn't do anything if watching a file)
      */
-    private void addWatcherTask(@NotNull MediaWatcherListener listener, String filepath, String taskName) {
+    private void addWatcherTask(@NotNull MediaWatcherListener listener, String filepath, String taskName, boolean watchSubDirs) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        MediaWatcher watcher = new MediaWatcher(listener, filepath);
+        MediaWatcher watcher = new MediaWatcher(listener, filepath, watchSubDirs);
         otherTasks.put(taskName, executorService.submit(watcher));
         executorService.shutdown();
     }
