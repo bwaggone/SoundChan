@@ -1,7 +1,5 @@
 package soundchan.BotListener;
 
-import soundchan.LocalAudioManager;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -13,12 +11,13 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 public class MediaWatcher implements Runnable {
 
-    private LocalAudioManager localAudioManager;
+    private MediaWatcherListener listener;
     private String mediaFilename;
     private Path mediaDir;
     private WatchService watchService;
     private WatchKey watchKey;
     private boolean isDirectory;
+    private int sleepTime = 5000;
 
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
@@ -27,13 +26,32 @@ public class MediaWatcher implements Runnable {
 
     /**
      * Creates a MediaWatcher, which monitors changes to files either within a directory or for a specific file.
-     * If the given filepath is name of a directory, it is assumed that we want to monitor changes to the sound files.
-     * If the given filepath is a single file, it is assumed that we want to monitor changes to the userSoundFile.
-     * @param audioManager AudioManager for this bot instance
+     * Defaults to scanning every 5 seconds.
+     * @param listener Object that will get a callback when there is a watch event
      * @param filepath Path to either directory or specific file
      */
-    public MediaWatcher(LocalAudioManager audioManager, String filepath) {
-        this.localAudioManager = audioManager;
+    public MediaWatcher(MediaWatcherListener listener, String filepath) {
+        this.listener = listener;
+        startWatchService(filepath);
+    }
+
+    /**
+     * Creates a MediaWatcher, which monitors changes to files either within a directory or for a specific file.
+     * @param listener Object that will get a callback when there is a watch event
+     * @param filepath Path to either directory or specific file
+     * @param sleepTime How long to put the scanner thread to sleep between rescans (time in milliseconds)
+     */
+    public MediaWatcher(MediaWatcherListener listener, String filepath, int sleepTime) {
+        this.listener = listener;
+        this.sleepTime = sleepTime;
+        startWatchService(filepath);
+    }
+
+    /**
+     * Sets up watch service for the file/directory
+     * @param filepath Path to file or directory to be scanned
+     */
+    private void startWatchService(String filepath) {
         File mediaFile = new File(filepath);
         this.mediaFilename = mediaFile.getName();
         if(mediaFile.isFile()) {
@@ -70,10 +88,10 @@ public class MediaWatcher implements Runnable {
                 for(WatchEvent<?> event : key.pollEvents()) {
                     WatchEvent<Path> pathEvent = cast(event);
                     if(isDirectory) {
-                        localAudioManager.UpdateFiles();
+                        listener.runTask(event);
                     } else {
                         if(pathEvent.context().endsWith(mediaFilename)) {
-                            localAudioManager.UpdateUserAudio();
+                            listener.runTask(event);
                         }
                     }
                 }
@@ -82,7 +100,7 @@ public class MediaWatcher implements Runnable {
                     break;
                 }
 
-                sleep(5000);
+                sleep(sleepTime);
             }
         } catch(InterruptedException e) {
             return;

@@ -19,11 +19,12 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
 import soundchan.*;
 
+import java.nio.file.WatchEvent;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -69,14 +70,28 @@ public class BotListener extends ListenerAdapter{
             localManager = new LocalAudioManager(localFilePath, userAudioPath);
 
             if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
-                addWatcherTask(userAudioPath, "watchUserSoundFile");
+                MediaWatcherListener listener = (event) -> System.out.println("thing");
+                addWatcherTask(listener, userAudioPath, "watchUserSoundFile");
+                /*addWatcherTask(new MediaWatcherListener() {
+                    @Override
+                    public void runTask(WatchEvent event) {
+                        System.out.println("Aaaa");
+                        //localManager.UpdateUserAudio();
+                    }
+                }, userAudioPath, "watchUserSoundFile");*/
             }
         }
         else
             localManager = new LocalAudioManager(localFilePath);
 
         if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
-            addWatcherTask(localFilePath, "watchLocalFilePath");
+            addWatcherTask(new MediaWatcherListener() {
+                @Override
+                public void runTask(WatchEvent event) {
+                    System.out.println("Oooo");
+                    //localManager.UpdateFiles();
+                }
+            }, localFilePath, "watchLocalFilePath");
         }
 
     }
@@ -391,13 +406,14 @@ public class BotListener extends ListenerAdapter{
 
     /**
      * Adds a new MediaWatcher to the list of running tasks
+     * @param listener Listener that will get callback during watching of media
      * @param filepath Path to either directory or file
      * @param taskName Thing to name task as
      */
-    private void addWatcherTask(String filepath, String taskName) {
+    private void addWatcherTask(@NotNull MediaWatcherListener listener, String filepath, String taskName) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        MediaWatcher directoryWatcher = new MediaWatcher(localManager, filepath);
-        otherTasks.put(taskName, executorService.submit(directoryWatcher));
+        MediaWatcher watcher = new MediaWatcher(listener, filepath);
+        otherTasks.put(taskName, executorService.submit(watcher));
         executorService.shutdown();
     }
 
