@@ -88,10 +88,10 @@ public class MediaWatcher implements Runnable {
                 for(WatchEvent<?> event : key.pollEvents()) {
                     WatchEvent<Path> pathEvent = cast(event);
                     if(isDirectory) {
-                        listener.runTask(event);
+                        listener.onWatchEvent(event);
                     } else {
                         if(pathEvent.context().endsWith(mediaFilename)) {
-                            listener.runTask(event);
+                            listener.onWatchEvent(event);
                         }
                     }
                 }

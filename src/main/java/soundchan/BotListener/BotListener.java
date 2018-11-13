@@ -70,7 +70,7 @@ public class BotListener extends ListenerAdapter{
             if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
                 addWatcherTask(new MediaWatcherListener() {
                     @Override
-                    public void runTask(WatchEvent event) {
+                    public void onWatchEvent(WatchEvent event) {
                         localManager.UpdateUserAudio();
                     }
                 }, userAudioPath, "watchUserSoundFile");
@@ -82,7 +82,7 @@ public class BotListener extends ListenerAdapter{
         if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
             addWatcherTask(new MediaWatcherListener() {
                 @Override
-                public void runTask(WatchEvent event) {
+                public void onWatchEvent(WatchEvent event) {
                     localManager.UpdateFiles();
                 }
             }, localFilePath, "watchLocalFilePath");
