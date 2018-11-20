@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -17,6 +18,7 @@ public class MediaWatcher implements Runnable {
     private Path mediaDir;
     private WatchService watchService;
     private WatchKey watchKey;
+    private ArrayList<WatchKey> subDirKeys;
     private boolean isDirectory;
     private int sleepTime = 5000;
 
@@ -68,6 +70,7 @@ public class MediaWatcher implements Runnable {
         } else if(mediaFile.isDirectory()) {
             this.mediaDir = mediaFile.toPath();
             isDirectory = true;
+            subDirKeys = new ArrayList<>();
         }
         try {
             this.watchService = FileSystems.getDefault().newWatchService();
@@ -77,7 +80,8 @@ public class MediaWatcher implements Runnable {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                         try {
-                            dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+                            WatchKey temp = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+                            subDirKeys.add(temp);
                             return FileVisitResult.CONTINUE;
                         } catch (IOException e) {
                             System.out.println("Error setting up watch service with sub dirs in " + filepath);
@@ -97,10 +101,26 @@ public class MediaWatcher implements Runnable {
     public void run() {
         try {
             while(true) {
-                WatchKey key = watchService.take();
-                if(this.watchKey != key) {
+                WatchKey key = watchService.take(); // Wait for an event to happen
+
+                // Check this event happened in a place we are monitoring, otherwise ignore it
+                if(!isDirectory && this.watchKey != key) {
                     System.out.println("Error with WatchKey");
                     continue;
+                } else if(isDirectory) {
+                    if(this.watchKey != key) { // Our event doesn't happen in the root of the sounds directory
+                        boolean noKeyMatch = true;
+                        for(WatchKey subKey : subDirKeys) { // Check if it happened in on of the sub directories
+                            if(subKey == key) {
+                                noKeyMatch = false;
+                                break;
+                            }
+                        }
+                        if(noKeyMatch) {
+                            System.out.println("Error with WatchKey");
+                            continue;
+                        }
+                    }
                 }
 
                 for(WatchEvent<?> event : key.pollEvents()) {
