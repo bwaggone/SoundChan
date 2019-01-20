@@ -1,20 +1,30 @@
+// Example properties file for SoundChan
+//
+// Flag conditions are enabled with any of the following values:
+//  true, on, enable, yes, 1
+// any other string (or empty) will leave the condition disabled
+
+
 //The Bot Token you will have received from the discord developers page
 botToken=BOT_TOKEN_FROM_DISCORD
 
 //The local file path to the directory of your sounds. Don't forget to escape your slashes
 localFilePath=C:\\PATH\\TO\\SOUNDS\\DIRECTORY
 
+//Flag for watching the sound directory for changes
+watchLocalFilePath=FLAG_CONDITION
+
 //The user for the 
 followingUser=USERNAME
 
-//Flag conditions are enabled with any of the following values:
-// true, on, enable, yes, 1
-//any other string (or empty) will leave the condition disabled
-
 //If you want SoundChan to play an audio file whit their name when a user joins the channel or have that information come from below file
 //This is a flag condition
-audioOnUserJoin=on/off
+audioOnUserJoin=FLAG_CONDITION
 
 //The file where users and sound clips are related, see usersound.properties.example for more info
 //If this is not set, it will default to usersounds.properties
 userAudioFilePath=C:\\PATH\\TO\\USER\\SOUND\\FILE
+
+//Flag for watching the user sound file for changes
+//If audioOnUserJoin is not enabled, then this will do nothing
+watchUserSoundFile=FLAG_CONDITION

@@ -19,10 +19,12 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AudioManager;
 import soundchan.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.nio.file.WatchEvent;
+import java.sql.SQLOutput;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class BotListener extends ListenerAdapter{
 
@@ -32,6 +34,7 @@ public class BotListener extends ListenerAdapter{
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
+    private Map<String, Future<?> > otherTasks;
 
     // From configuration file
     private static String followingUser;
@@ -56,17 +59,35 @@ public class BotListener extends ListenerAdapter{
         localFilePath = properties.getProperty("localFilePath");
         followingUser = properties.getProperty("followingUser");
         audioOnUserJoin = settingEnableCheck(properties.getProperty("audioOnUserJoin"));
+        otherTasks = new HashMap<>();
         if(audioOnUserJoin) {
             String userAudioPath = properties.getProperty("userAudioFilePath");
             if(userAudioPath == null || userAudioPath.contentEquals("")) {
-                localManager = new LocalAudioManager(localFilePath, "usersound.properties");
+                userAudioPath = "usersound.properties";
             }
-            else {
-                localManager = new LocalAudioManager(localFilePath, userAudioPath);
+            localManager = new LocalAudioManager(localFilePath, userAudioPath);
+
+            if(settingEnableCheck(properties.getProperty("watchUserSoundFile"))) {
+                addWatcherTask(new MediaWatcherListener() {
+                    @Override
+                    public void onWatchEvent(WatchEvent event) {
+                        localManager.UpdateUserAudio();
+                    }
+                }, userAudioPath, "watchUserSoundFile", false);
             }
         }
         else
             localManager = new LocalAudioManager(localFilePath);
+
+        if(settingEnableCheck(properties.getProperty("watchLocalFilePath"))) {
+            addWatcherTask(new MediaWatcherListener() {
+                @Override
+                public void onWatchEvent(WatchEvent event) {
+                    localManager.UpdateFiles();
+                }
+            }, localFilePath, "watchLocalFilePath", true);
+        }
+
     }
 
     private synchronized GuildMusicManager getGuildAudioPlayer() {
@@ -425,6 +446,8 @@ public class BotListener extends ListenerAdapter{
      * @return True if it matches a value to enable, False otherwise
      */
     private static boolean settingEnableCheck(String value) {
+        if(value == null)
+            return false;
         value = value.toLowerCase();
         if(value.contentEquals("true") || value.contentEquals("1") ||
                 value.contentEquals("yes") || value.contentEquals("on") ||
@@ -432,6 +455,20 @@ public class BotListener extends ListenerAdapter{
             return true;
         else
             return false;
+    }
+
+    /**
+     * Adds a new MediaWatcher to the list of running tasks
+     * @param listener Listener that will get callback during watching of media
+     * @param filepath Path to either directory or file
+     * @param taskName Thing to name task as
+     * @param watchSubDirs Also watch any subdirectories in the given directory (doesn't do anything if watching a file)
+     */
+    private void addWatcherTask(@NotNull MediaWatcherListener listener, String filepath, String taskName, boolean watchSubDirs) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        MediaWatcher watcher = new MediaWatcher(listener, filepath, watchSubDirs);
+        otherTasks.put(taskName, executorService.submit(watcher));
+        executorService.shutdown();
     }
 
 }
