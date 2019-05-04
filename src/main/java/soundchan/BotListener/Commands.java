@@ -13,5 +13,6 @@ public enum Commands {
     playingnow,
     status,
     summon,
-    help
+    help,
+    dropqueue
 }
