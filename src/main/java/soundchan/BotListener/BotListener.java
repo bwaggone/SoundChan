@@ -13,6 +13,7 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
+import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -35,6 +36,8 @@ public class BotListener extends ListenerAdapter{
     private final Map<Long, GuildMusicManager> musicManagers;
     private BotListenerHelpers helper = new BotListenerHelpers();
     private Map<String, Future<?> > otherTasks;
+    private boolean hasAudience;
+    private Timer timer;
 
     // From configuration file
     private static String followingUser;
@@ -48,6 +51,8 @@ public class BotListener extends ListenerAdapter{
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
 
+        hasAudience = false;
+        timer = new Timer();
         loadProperties(properties);
     }
 
@@ -151,6 +156,7 @@ public class BotListener extends ListenerAdapter{
                 });
             }
         }
+        hasAudience = true;
         super.onGuildVoiceJoin(event);
     }
 
@@ -164,6 +170,25 @@ public class BotListener extends ListenerAdapter{
             }
         }
         super.onGuildVoiceMove(event);
+    }
+
+    @Override
+    public void onGuildVoiceLeave(GuildVoiceLeaveEvent event) {
+        if(event.getChannelLeft().getMembers().size() == 1) {   // If only member in chat is SoundChan
+            hasAudience = false;
+            getGuildAudioPlayer().player.setPaused(true);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    if(!hasAudience) {
+                        clearQueue();
+                        AudioManager audioManager = monitoredGuild.getAudioManager();
+                        audioManager.closeAudioConnection();
+                    }
+                }
+            }, 10000); // Wait 10 seconds before leaving channel
+        }
+        super.onGuildVoiceLeave(event);
     }
 
     @Override
@@ -236,9 +261,13 @@ public class BotListener extends ListenerAdapter{
                     // Print currently playing song with extra info
                     printCurrentlyPlaying(channel, true);
                 }else if(enumCommand == Commands.summon){
+                    hasAudience = true;
                     connectToUserVoiceChannel(monitoredGuild.getAudioManager(), event.getMember().getEffectiveName());
                 }else if(enumCommand == Commands.help){
                     help(channel);
+                }else if(enumCommand == Commands.dropqueue) {
+                    clearQueue();
+                    channel.sendMessage("Queue has been cleared").queue();
                 }
 
             }
@@ -469,6 +498,13 @@ public class BotListener extends ListenerAdapter{
         MediaWatcher watcher = new MediaWatcher(listener, filepath, watchSubDirs);
         otherTasks.put(taskName, executorService.submit(watcher));
         executorService.shutdown();
+    }
+
+    /**
+     * Empty out the queue of things to play and stops currently playing audio
+     */
+    private void clearQueue() {
+        getGuildAudioPlayer().scheduler.emptyQueue();
     }
 
 }
