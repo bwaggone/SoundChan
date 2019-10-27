@@ -7,17 +7,17 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sun.istack.internal.NotNull;
-import net.dv8tion.jda.client.events.call.voice.CallVoiceJoinEvent;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.managers.AudioManager;
+
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.managers.AudioManager;
+import org.jetbrains.annotations.NotNull;
 import soundchan.*;
 
 import java.nio.file.WatchEvent;
@@ -109,11 +109,6 @@ public class BotListener extends ListenerAdapter{
         return musicManager;
     }
 
-    @Override
-    public void onCallVoiceJoin(CallVoiceJoinEvent event){
-        super.onCallVoiceJoin(event);
-    }
-
     /**
      * Plays an audio clip when a user connects to the voice channel if enabled in the config file. For the sound to play,
      * there needs to be a sound file with the same name as the user, otherwise it won't play anything.
@@ -195,7 +190,10 @@ public class BotListener extends ListenerAdapter{
     public void onMessageReceived(MessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
 
-        Guild guild = event.getGuild();
+        Guild guild = null;
+        if(event.isFromGuild()) {
+            guild = event.getGuild();
+        }
         MessageChannel channel = helper.GetReplyChannel(event);
 
         // If we haven't set the Monitored Guild yet, set the value

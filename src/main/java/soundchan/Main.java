@@ -1,8 +1,8 @@
 package soundchan;
 
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 import soundchan.BotListener.*;
 
 import java.io.FileInputStream;
@@ -17,10 +17,9 @@ public class Main {
 
     JDA jda = new JDABuilder(AccountType.BOT)
         .setToken(properties.getProperty("botToken"))
-        .buildBlocking();
-
-
-    jda.addEventListener(new BotListener(properties));
+        .addEventListeners(new BotListener(properties))
+        .build();
+    jda.awaitReady();
   }
 
   private static Properties LoadProperties(){

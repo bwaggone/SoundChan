@@ -1,6 +1,6 @@
 package soundchan;
 
-import net.dv8tion.jda.core.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageChannel;
 
 import java.io.File;
 import java.io.FileInputStream;
