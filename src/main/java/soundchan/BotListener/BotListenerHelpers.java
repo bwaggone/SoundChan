@@ -13,7 +13,10 @@ public class BotListenerHelpers {
      * @return Either a PrivateChannel (if SoundChan was DM'd) or a TextChannel (If SoundChan was commanded in one)
      */
     public MessageChannel GetReplyChannel(MessageReceivedEvent event){
-        Guild guild = event.getGuild();
+        Guild guild = null;
+        if(event.isFromGuild()) {
+            guild = event.getGuild();
+        }
         return (guild == null) ? event.getPrivateChannel() : event.getTextChannel();
     }
 

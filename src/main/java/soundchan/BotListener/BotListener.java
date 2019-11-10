@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -21,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import soundchan.*;
 
 import java.nio.file.WatchEvent;
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -95,6 +95,18 @@ public class BotListener extends ListenerAdapter{
 
     }
 
+    /**
+     * Sets the monitored guild to the given guild if SoundChan doesn't already have a guild set
+     * @param guild The guild to monitor if not monitoring anything at the moment
+     */
+    private void setMonitoredGuild(Guild guild) {
+        // If we haven't set the Monitored Guild yet, set the value
+        if(monitoredGuildId == -1 && guild != null){
+            monitoredGuildId = Long.parseLong(guild.getId());
+            monitoredGuild = guild;
+        }
+    }
+
     private synchronized GuildMusicManager getGuildAudioPlayer() {
         long guildId = monitoredGuildId;
         GuildMusicManager musicManager = musicManagers.get(guildId);
@@ -117,6 +129,8 @@ public class BotListener extends ListenerAdapter{
     @Override
     public void onGuildVoiceJoin(GuildVoiceJoinEvent event) {
         if(audioOnUserJoin) {
+            Guild guild = event.getGuild();
+            setMonitoredGuild(guild);
             String filepath = localManager.GetFilePath(event.getMember().getEffectiveName());
             if (!filepath.contentEquals("")) {
                 GuildMusicManager musicManager = getGuildAudioPlayer();
@@ -159,6 +173,8 @@ public class BotListener extends ListenerAdapter{
     @Override
     public void onGuildVoiceMove(GuildVoiceMoveEvent event) {
         if(event.getMember().getEffectiveName().compareTo(followingUser) == 0) {
+            Guild guild = event.getGuild();
+            setMonitoredGuild(guild);
             AudioManager audioManager = monitoredGuild.getAudioManager();
             if(!audioManager.isAttemptingToConnect()) {
                 audioManager.openAudioConnection(event.getChannelJoined());
@@ -170,6 +186,8 @@ public class BotListener extends ListenerAdapter{
     @Override
     public void onGuildVoiceLeave(GuildVoiceLeaveEvent event) {
         if(event.getChannelLeft().getMembers().size() == 1) {   // If only member in chat is SoundChan
+            Guild guild = event.getGuild();
+            setMonitoredGuild(guild);
             hasAudience = false;
             getGuildAudioPlayer().player.setPaused(true);
             timer.schedule(new TimerTask() {
@@ -194,13 +212,9 @@ public class BotListener extends ListenerAdapter{
         if(event.isFromGuild()) {
             guild = event.getGuild();
         }
-        MessageChannel channel = helper.GetReplyChannel(event);
+        setMonitoredGuild(guild);
 
-        // If we haven't set the Monitored Guild yet, set the value
-        if(monitoredGuildId == -1 && guild != null){
-            monitoredGuildId = Long.parseLong(guild.getId());
-            monitoredGuild = guild;
-        }
+        MessageChannel channel = helper.GetReplyChannel(event);
 
         if(monitoredGuild != null){
 
