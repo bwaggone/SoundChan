@@ -112,14 +112,15 @@ public class LocalAudioManager {
      */
     private Map<String, String> PopulateFiles(){
         File folder = new File(filepath);
-        File[] listOfFiles = folder.listFiles();
-
         Map<String, String> fileDict = new HashMap<>();
+        if(folder.exists() && folder.isDirectory()) {
+            File[] listOfFiles = folder.listFiles();
 
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                String filename = file.getName();
-                fileDict.put(filename.substring(0, filename.indexOf('.')), filename);
+            for (File file : listOfFiles) {
+                if (file.isFile()) {
+                    String filename = file.getName();
+                    fileDict.put(filename.substring(0, filename.indexOf('.')), filename);
+                }
             }
         }
         return fileDict;
