@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -176,7 +175,7 @@ public class BotListener extends ListenerAdapter{
             Guild guild = event.getGuild();
             setMonitoredGuild(guild);
             AudioManager audioManager = monitoredGuild.getAudioManager();
-            if(!audioManager.isAttemptingToConnect()) {
+            if(!audioManager.isConnected()) {
                 audioManager.openAudioConnection(event.getChannelJoined());
             }
         }
@@ -436,7 +435,7 @@ public class BotListener extends ListenerAdapter{
     }
 
     private static void connectToUserVoiceChannel(AudioManager audioManager, String user) {
-        if (!audioManager.isAttemptingToConnect()) {
+        if (!audioManager.isConnected()) {
             for (VoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
                 for (int i = 0; i < voiceChannel.getMembers().size(); i++) {
                     if (voiceChannel.getMembers().get(i).getEffectiveName().compareTo(user) == 0) {
