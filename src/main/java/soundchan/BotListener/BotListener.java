@@ -290,8 +290,14 @@ public class BotListener extends ListenerAdapter{
 
     private void changeVolume(final MessageChannel channel, final String volume) {
         GuildMusicManager musicManager = getGuildAudioPlayer();
-        musicManager.player.setVolume(Integer.parseInt(volume));
-        channel.sendMessage("Volume now set to " + volume + "%").queue();
+        int newVol = Integer.parseInt(volume);
+        if(newVol > 200) {
+            newVol = 200;
+        } else if(newVol < 0) {
+            newVol = 0;
+        }
+        musicManager.player.setVolume(newVol);
+        channel.sendMessage("Volume now set to " + newVol + "%").queue();
     }
 
     private void listTracks(final MessageChannel channel) {
